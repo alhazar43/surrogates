@@ -1,0 +1,68 @@
+{
+ "settings": {
+  "N_EXP": 200,
+  "K": 19,
+  "N_SEED": 3,
+  "N_POOL": 2000,
+  "N_BANK": 300,
+  "M": 32,
+  "T": 333,
+  "ETA": 0.015,
+  "K0": 8,
+  "K_BANK": 16
+ },
+ "cases": [
+  {
+   "case": "N2",
+   "run_noise": 0.0,
+   "n_experiments": 200,
+   "K": 19,
+   "rate_S1": 0.045,
+   "mean_p_S1": 0.5435,
+   "rate_S3": 0.06,
+   "mean_p_S3": 0.5365,
+   "true_effect_I_minus_perm_mean": -1.4473382284778125e-05,
+   "true_effect_se": 0.00019211198299953742,
+   "sd_across_perm_of_read_S1": 0.006129129764632169
+  },
+  {
+   "case": "P1",
+   "run_noise": 0.0,
+   "n_experiments": 200,
+   "K": 19,
+   "rate_S1": 0.795,
+   "mean_p_S1": 0.06925,
+   "rate_S3": 0.995,
+   "mean_p_S3": 0.05025,
+   "true_effect_I_minus_perm_mean": 0.018013111259102477,
+   "true_effect_se": 0.00017315534025997786,
+   "sd_across_perm_of_read_S1": 0.005803757084150443
+  },
+  {
+   "case": "N2",
+   "run_noise": 0.15,
+   "n_experiments": 200,
+   "K": 19,
+   "rate_S1": 0.04,
+   "mean_p_S1": 0.539,
+   "rate_S3": 0.04,
+   "mean_p_S3": 0.53325,
+   "true_effect_I_minus_perm_mean": -0.00010483151934161439,
+   "true_effect_se": 0.0003022945631678345,
+   "sd_across_perm_of_read_S1": 0.008151374050162018
+  },
+  {
+   "case": "P1",
+   "run_noise": 0.15,
+   "n_experiments": 200,
+   "K": 19,
+   "rate_S1": 0.665,
+   "mean_p_S1": 0.10550000000000002,
+   "rate_S3": 0.965,
+   "mean_p_S3": 0.0535,
+   "true_effect_I_minus_perm_mean": 0.01818230089507669,
+   "true_effect_se": 0.00025198858762998284,
+   "sd_across_perm_of_read_S1": 0.008262596999391077
+  }
+ ]
+}

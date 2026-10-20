@@ -1,0 +1,41 @@
+1. Time to P = t/2, held against absent at equal initial kernel K0
+   t=1.0  K0=8.0     held ode   0.0864 quad   0.0864 | ln(4t/K)/(2t)  -0.3466  ln2/K   0.0866 | absent starts above t/2
+   t=1.0  K0=2.0     held ode   0.3313 quad   0.3313 | ln(4t/K)/(2t)   0.3466  ln2/K   0.3466 | absent starts above t/2
+   t=1.0  K0=1.0     held ode   0.5980 quad   0.5980 | ln(4t/K)/(2t)   0.6931  ln2/K   0.6931 | absent starts above t/2
+   t=1.0  K0=0.5     held ode   0.9517 quad   0.9517 | ln(4t/K)/(2t)   1.0397  ln2/K   1.3863 | absent ode   0.5493 closed   0.5493 gap +0.4023
+   t=1.0  K0=0.1     held ode   1.8200 quad   1.8200 | ln(4t/K)/(2t)   1.8444  ln2/K   6.9315 | absent ode   1.4722 closed   1.4722 gap +0.3478
+   t=1.0  K0=0.02    held ode   2.6441 quad   2.6441 | ln(4t/K)/(2t)   2.6492  ln2/K  34.6574 | absent ode   2.2976 closed   2.2976 gap +0.3466
+   t=1.0  K0=0.002   held ode   3.8000 quad   3.8000 | ln(4t/K)/(2t)   3.8005  ln2/K 346.5736 | absent ode   3.4534 closed   3.4534 gap +0.3466
+   t=1.0  K0=0.0002  held ode   4.9517 quad   4.9517 | ln(4t/K)/(2t)   4.9517  ln2/K 3465.7359 | absent ode   4.6051 closed   4.6051 gap +0.3466
+   t=4.0  K0=8.0     held ode   0.0828 quad   0.0828 | ln(4t/K)/(2t)   0.0866  ln2/K   0.0866 | absent starts above t/2
+   t=4.0  K0=2.0     held ode   0.2379 quad   0.2379 | ln(4t/K)/(2t)   0.2599  ln2/K   0.3466 | absent ode   0.1373 closed   0.1373 gap +0.1006
+   t=4.0  K0=1.0     held ode   0.3327 quad   0.3327 | ln(4t/K)/(2t)   0.3466  ln2/K   0.6931 | absent ode   0.2432 closed   0.2432 gap +0.0895
+   t=4.0  K0=0.5     held ode   0.4257 quad   0.4257 | ln(4t/K)/(2t)   0.4332  ln2/K   1.3863 | absent ode   0.3385 closed   0.3385 gap +0.0872
+   t=4.0  K0=0.1     held ode   0.6328 quad   0.6328 | ln(4t/K)/(2t)   0.6344  ln2/K   6.9315 | absent ode   0.5462 closed   0.5462 gap +0.0866
+   t=4.0  K0=0.02    held ode   0.8353 quad   0.8353 | ln(4t/K)/(2t)   0.8356  ln2/K  34.6574 | absent ode   0.7486 closed   0.7486 gap +0.0866
+   t=4.0  K0=0.002   held ode   1.1234 quad   1.1234 | ln(4t/K)/(2t)   1.1234  ln2/K 346.5736 | absent ode   1.0367 closed   1.0367 gap +0.0866
+   t=4.0  K0=0.0002  held ode   1.4112 quad   1.4112 | ln(4t/K)/(2t)   1.4112  ln2/K 3465.7359 | absent ode   1.3246 closed   1.3246 gap +0.0866
+2. Rank inversion: held K_h revives slower than absent K_a iff K_h < about 2 K_a (K << t)
+   K_a=0.02   K_h/K_a=1.0  held 2.6441 absent 2.2976 held slower: True
+   K_a=0.02   K_h/K_a=1.5  held 2.4389 absent 2.2976 held slower: True
+   K_a=0.02   K_h/K_a=1.9  held 2.3187 absent 2.2976 held slower: True
+   K_a=0.02   K_h/K_a=2.0  held 2.2926 absent 2.2976 held slower: False
+   K_a=0.02   K_h/K_a=2.1  held 2.2677 absent 2.2976 held slower: False
+   K_a=0.02   K_h/K_a=3.0  held 2.0849 absent 2.2976 held slower: False
+   K_a=0.002  K_h/K_a=1.0  held 3.8000 absent 3.4534 held slower: True
+   K_a=0.002  K_h/K_a=1.5  held 3.5970 absent 3.4534 held slower: True
+   K_a=0.002  K_h/K_a=1.9  held 3.4786 absent 3.4534 held slower: True
+   K_a=0.002  K_h/K_a=2.0  held 3.4529 absent 3.4534 held slower: False
+   K_a=0.002  K_h/K_a=2.1  held 3.4284 absent 3.4534 held slower: False
+   K_a=0.002  K_h/K_a=3.0  held 3.2496 absent 3.4534 held slower: False
+3. Spearman r_s over 19 conditions, threshold 0.6 (chosen)
+   null (independent ranks): P(r_s >= 0.6) = 0.0040, one-sided 0.05 critical value 0.391
+   bivariate normal, Pearson 0.5: power P(r_s >= 0.6) = 0.253
+   bivariate normal, Pearson 0.6: power P(r_s >= 0.6) = 0.446
+   bivariate normal, Pearson 0.7: power P(r_s >= 0.6) = 0.691
+   bivariate normal, Pearson 0.8: power P(r_s >= 0.6) = 0.908
+   bivariate normal, Pearson 0.9: power P(r_s >= 0.6) = 0.995
+4. GRPO factor w_G(p) at G = 5, population std (panel B11 point 2, B31 point 1)
+   w_5(1/2) = 1.7247, w_5(1e-4) = 1.9999, min over p 1.7247 at p 0.500, monotone on (0, 1/2]: True
+   sup gap of the end point shift times beta = 2 - w_5(1/2) = 0.2753
+   over base p from 0.05 to 0.95: 1.9477 to 1.7247

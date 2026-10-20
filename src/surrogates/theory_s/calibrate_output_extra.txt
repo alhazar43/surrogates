@@ -1,0 +1,15 @@
+seed 20261020, alpha 0.05
+
+Part A2. MH test, 3000 students, 10 strata, 300 replicates per row
+  rest items | case | rejection MH
+  20 | null, ability dependence 1.0 | 0.257
+  20 | planted gamma 0.7, dependence 1.0 | 0.497
+  100 | null, ability dependence 1.0 | 0.087
+  100 | planted gamma 0.7, dependence 1.0 | 0.220
+  250 | null, ability dependence 1.0 | 0.070
+  250 | planted gamma 0.7, dependence 1.0 | 0.197
+
+Part B2. Tracker reading, 4918 students per log, 100 replicates per row
+  case | rejection naive gain | rejection nested interaction | mean interaction coef | dAUC mean | median | 5% | 95%
+  null, eta homogeneous | 0.440 | 0.060 | -0.0002 | 0.0001 | 0.0001 | -0.0001 | 0.0002
+  planted eta1 -0.04 per attempt | 0.130 | 0.610 | -0.0529 | 0.0001 | 0.0001 | -0.0002 | 0.0003

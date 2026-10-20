@@ -1,0 +1,6 @@
+Part Q. Population log OR_MH, gamma 1.4, delta 0, stratified on the true theta (50 strata), 400000 students
+  pi 0.1: log OR_MH 0.2085; share of z among wrong on both 0.132, variance 0.115
+  pi 0.3: log OR_MH 0.4020; share of z among wrong on both 0.368, variance 0.233
+  pi 0.5: log OR_MH 0.4544; share of z among wrong on both 0.579, variance 0.244
+  pi 0.7: log OR_MH 0.3741; share of z among wrong on both 0.761, variance 0.182
+  pi 0.9: log OR_MH 0.1769; share of z among wrong on both 0.925, variance 0.069

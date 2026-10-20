@@ -1,0 +1,12 @@
+# Decisions
+
+| date | choice | alternatives | reason | owner |
+|---|---|---|---|---|
+| 2026-10-19T08:54Z | The project lives in C:/Users/YuanW/PLMS/surrogates with Plan state none; the research program is program/research-program.md, version 1 | a folder under signature; a plan with rows | the author: a new project with its own directory, an editable research program and not an executable plan | the author |
+| 2026-10-19T08:54Z | Six theory units (TG, TM, TR, TE, TP, TS), one Opus builder each, write theory/<id>.md | one panel over all six; Sonnet builders | the author asked agents to craft the theory end of each surrogate; theory is derivation work (params tiers, builder_design) | the lead |
+| 2026-10-19T08:54Z | The scaffold ran on a Haiku builder (unit S0) | the lead writes it | the author asked for cheap agents; mechanical file work | the lead |
+| 2026-10-19T09:16Z | Every finished document gets a thorough read by a fresh Opus reviewer that did not write it (units Rev<id>): each derivation re-derived, each number recomputed, each script rerun, each citation reopened; critical errors listed first; the builder gets one fix attempt | the lead reads it alone; a Sonnet checker | the author: a thorough read once any document is finished, after free models found critical errors in the peer's draft | the author |
+| 2026-10-19T10:35Z | Reviews flag plain errors only; no second review round; the lead relays no intermediate result and reads only count lines; one assembled report when version 2 of the research program exists | thorough read of every item | the author, 19 October | the author |
+| 2026-10-19T10:52Z | Shared ground copies Jain et al. 2023 first, Huang et al. 2026 second | Huang first; a new generator | the author: "Jian first, then Huang" | the author |
+| 2026-10-19T10:56Z | The peer's work stays a separate small project for now; the two setups are not opened now | peer as tiers of G and M | the author: "it stays small as of now, I also wouldnt open these 2 now" | the author |
+| 2026-10-19T16:03Z | A reader reads the earlier PLMS records (learner-state base, the goal 2 records, ability-tracker, signature, irt4llm mistakes) for failures that bear on probe design; this lifts the project's rule against opening learner-state and learner-models for this one read; docs/conversation stays closed | no read of the record | the author: "previous failures in PLMS might provide some insights, wouldnt hurt to check them as well" | the author |

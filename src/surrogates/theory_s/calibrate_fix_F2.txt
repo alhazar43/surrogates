@@ -1,0 +1,3 @@
+Part F2. Local level model, steady-state filter and Rauch-Tung-Striebel smoother
+  v=0.01 I=0.25: filter var 0.19506 sd 0.4417; smoother var 0.09997 sd 0.3162
+  v=0.0025 I=0.25: filter var 0.09876 sd 0.3143; smoother var 0.05000 sd 0.2236

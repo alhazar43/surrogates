@@ -1,0 +1,97 @@
+{
+ "beta": {
+  "none(0)": {
+   "sigma_hat_mean": 0.058047104908847846,
+   "sigma_hat_median": 0.047602884405094484,
+   "reject_rate": 0.0
+  },
+  "none_sharp(0)": {
+   "sigma_hat_mean": 0.17467400202413497,
+   "sigma_hat_median": 0.19137010313112618,
+   "reject_rate": 0.25
+  },
+  "item_specific(0.1)": {
+   "sigma_hat_mean": 0.16129385689826897,
+   "sigma_hat_median": 0.1663559908202889,
+   "reject_rate": 0.4375
+  },
+  "item_specific(0.25)": {
+   "sigma_hat_mean": 0.30422720277929993,
+   "sigma_hat_median": 0.30179353680686444,
+   "reject_rate": 1.0
+  }
+ },
+ "grid_npmle": {
+  "none(0)": {
+   "sigma_hat_mean": 0.009964905688625111,
+   "sigma_hat_median": 0.0,
+   "reject_rate": 0.0
+  },
+  "none_sharp(0)": {
+   "sigma_hat_mean": 0.01347584047261828,
+   "sigma_hat_median": 0.0,
+   "reject_rate": 0.0
+  },
+  "item_specific(0.1)": {
+   "sigma_hat_mean": 0.03903908809261366,
+   "sigma_hat_median": 0.0,
+   "reject_rate": 0.0625
+  },
+  "item_specific(0.25)": {
+   "sigma_hat_mean": 0.23017169850859984,
+   "sigma_hat_median": 0.2367449934213538,
+   "reject_rate": 0.875
+  }
+ },
+ "grid_smoothed": {
+  "none(0)": {
+   "sigma_hat_mean": 0.10007873035339515,
+   "sigma_hat_median": 0.11470686595006133,
+   "reject_rate": 0.125
+  },
+  "none_sharp(0)": {
+   "sigma_hat_mean": 0.0632358028294106,
+   "sigma_hat_median": 0.0,
+   "reject_rate": 0.0625
+  },
+  "item_specific(0.1)": {
+   "sigma_hat_mean": 0.15853407865914168,
+   "sigma_hat_median": 0.1732629766500731,
+   "reject_rate": 0.375
+  },
+  "item_specific(0.25)": {
+   "sigma_hat_mean": 0.3037642304438901,
+   "sigma_hat_median": 0.310308443314815,
+   "reject_rate": 1.0
+  }
+ },
+ "logitnormal": {
+  "none(0)": {
+   "sigma_hat_mean": 0.07835807706615044,
+   "sigma_hat_median": 0.09015760595806552,
+   "reject_rate": 0.125
+  },
+  "none_sharp(0)": {
+   "sigma_hat_mean": 0.015976138184253634,
+   "sigma_hat_median": 0.0,
+   "reject_rate": 0.0
+  },
+  "item_specific(0.1)": {
+   "sigma_hat_mean": 0.11082266270677432,
+   "sigma_hat_median": 0.1279496401135259,
+   "reject_rate": 0.125
+  },
+  "item_specific(0.25)": {
+   "sigma_hat_mean": 0.27968436775811967,
+   "sigma_hat_median": 0.2831916394432582,
+   "reject_rate": 1.0
+  }
+ },
+ "settings": {
+  "R": 16,
+  "k": 32,
+  "J": 1500,
+  "B": 199,
+  "B_size": 49
+ }
+}

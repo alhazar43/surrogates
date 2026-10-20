@@ -1,0 +1,22 @@
+seed 20261019, alpha 0.05, python 3.11.9, numpy 1.26.4
+
+Part F. Filter floor, random walk variance q per attempt, Fisher information I per answer
+  q=0.01 I=0.25: P closed 0.19506, P iterated 0.19506, posterior SD 0.4417 logit, window 20.0 attempts
+  q=0.0025 I=0.25: P closed 0.09876, P iterated 0.09876, posterior SD 0.3143 logit, window 40.0 attempts
+  q=0.01 I=0.1: P closed 0.31127, P iterated 0.31127, posterior SD 0.5579 logit, window 31.6 attempts
+
+Part A. Linked-option MH test, 500 replicates per row
+  students | case | median n both wrong | mean log OR_MH | rejection MH | rejection crude
+  1000 | null, no ability dependence | 294 | -0.022 | 0.058 | 0.058
+  1000 | null, ability dependence 1.0 | 293 | 0.228 | 0.154 | 0.604
+  1000 | planted gamma 0.7, dependence 1.0 | 325 | 0.300 | 0.232 | 0.732
+  1000 | planted gamma 1.4, dependence 1.0 | 325 | 0.503 | 0.522 | 0.874
+  3000 | null, no ability dependence | 879 | -0.003 | 0.054 | 0.058
+  3000 | null, ability dependence 1.0 | 881 | 0.229 | 0.324 | 0.986
+  3000 | planted gamma 0.7, dependence 1.0 | 980 | 0.288 | 0.516 | 0.990
+  3000 | planted gamma 1.4, dependence 1.0 | 980 | 0.512 | 0.946 | 1.000
+
+Part B. Tracker reading, 2000 students per log, 200 replicates per row
+  case | rejection naive gain | rejection nested interaction | mean interaction coef | dAUC mean | median | 5% | 95%
+  null, eta homogeneous | 0.215 | 0.050 | 0.0023 | -0.0000 | 0.0000 | -0.0004 | 0.0004
+  planted eta1 -0.04 per attempt | 0.070 | 0.305 | -0.0502 | 0.0000 | 0.0000 | -0.0004 | 0.0004

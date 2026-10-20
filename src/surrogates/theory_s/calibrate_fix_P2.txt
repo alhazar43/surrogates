@@ -1,0 +1,9 @@
+Part P2. Pooled MH, K = 50 pairs of 1000 students, rest 250, 10 strata per pair, delta 1.0, 200 logs
+  pooled log OR_MH mean 0.0343 (MC SE 0.0028), median 0.0338, SD 0.0402, 5 to 95 percent -0.0242 to 0.1097; rejection 0.170
+  normal approximation with r = pooled mean, s1 = 0.3042: K=1: 0.051
+  normal approximation with r = pooled mean, s1 = 0.3042: K=5: 0.057
+  normal approximation with r = pooled mean, s1 = 0.3042: K=10: 0.065
+  normal approximation with r = pooled mean, s1 = 0.3042: K=20: 0.080
+  normal approximation with r = pooled mean, s1 = 0.3042: K=50: 0.125
+  normal approximation with r = pooled mean, s1 = 0.3042: K=100: 0.203
+  normal approximation with r = pooled mean, s1 = 0.3042: K=200: 0.357

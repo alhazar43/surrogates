@@ -1,0 +1,21 @@
+Part P. MH test pooled over K linked pairs, 1000 students per pair, rest 250 items, 10 strata, delta 1.0
+  population residue log OR_MH (400000 students):
+    rest 250, 10 strata, delta 1.0: 0.0165
+    rest 250, each score value, delta 1.0: 0.0151
+    rest 250, 10 strata, delta 0.5: 0.0202
+    rest 250, 10 strata, delta 2.0: 0.0901
+    rest 50, 10 strata, delta 1.0: 0.0943
+  one pair: median students wrong on both 292, SD of log OR_MH 0.3042 (400 logs)
+  simulated rejection rate of the pooled MH test under the hard null:
+    K=1: 0.072 (400 logs, MC SE 0.011); normal approximation 0.050
+    K=20: 0.060 (300 logs, MC SE 0.013); normal approximation 0.057
+    K=50: 0.210 (100 logs, MC SE 0.022); normal approximation 0.067
+  normal approximation, FPR(K) = Phi(-1.96 + r sqrt(K)/s1) + Phi(-1.96 - r sqrt(K)/s1):
+    K | pooled wrong on both | 10 strata d1.0 | each value d1.0 | 10 strata d0.5 | 10 strata d2.0
+    1 | 292 | 0.050 | 0.050 | 0.051 | 0.060
+    5 | 1462 | 0.052 | 0.051 | 0.053 | 0.102
+    10 | 2925 | 0.053 | 0.053 | 0.055 | 0.155
+    20 | 5850 | 0.057 | 0.056 | 0.060 | 0.263
+    50 | 14625 | 0.067 | 0.064 | 0.076 | 0.553
+    100 | 29250 | 0.084 | 0.079 | 0.102 | 0.842
+    200 | 58500 | 0.119 | 0.108 | 0.156 | 0.987

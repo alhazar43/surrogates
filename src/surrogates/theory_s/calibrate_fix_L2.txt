@@ -1,0 +1,6 @@
+Part L2. MLS with the level taken from n_skill items of the linked skill (the departure rho 0.8 holds for
+  the general level, which the test no longer uses). 1000 students per pair, alpha 0.05, two-sided
+  case | K | logs | MLS rejection | MH rejection
+  null, delta 1.0, 10 skill items | 20 | 200 | 0.060 | 0.985
+  planted gamma 0.7, delta 1.0, 10 skill items | 20 | 200 | 0.345 | 1.000
+  null, delta 1.0, 10 skill items | 50 | 100 | 0.060 | 1.000

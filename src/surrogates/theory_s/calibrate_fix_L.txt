@@ -1,0 +1,15 @@
+Part L. Pooled marginal-likelihood score test (MLS) and pooled MH test (10 strata) on the same draws
+  1000 students per pair; rejection at alpha 0.05, two-sided
+  case | K | logs | MLS rejection | MH rejection | mean fitted d_j
+  null, delta 1.0, rest 250 | 1 | 300 | 0.060 | 0.073 | -0.996
+  null, delta 1.0, rest 250 | 20 | 200 | 0.060 | 0.095 | -1.014
+  null, delta 1.0, rest 250 | 50 | 100 | 0.060 | 0.160 | -1.016
+  null, delta 1.0, rest 50 | 20 | 200 | 0.060 | 0.370 | -1.013
+  null, delta 2.0, rest 50 | 20 | 200 | 0.030 | 1.000 | -2.049
+  null, delta 0, rest 250 | 20 | 200 | 0.035 | 0.040 | 0.001
+  planted gamma 0.7, delta 1.0, rest 250 | 1 | 300 | 0.073 | 0.087 | -0.966
+  planted gamma 0.7, delta 1.0, rest 250 | 20 | 200 | 0.530 | 0.705 | -0.961
+  planted gamma 0.7, delta 1.0, rest 50 | 20 | 200 | 0.445 | 0.930 | -0.964
+  departure rho 0.8, null, delta 1.0, rest 250 | 1 | 300 | 0.210 | 0.243 | -0.665
+  departure rho 0.8, null, delta 1.0, rest 250 | 20 | 200 | 0.990 | 0.990 | -0.665
+  departure rho 0.95, null, delta 1.0, rest 250 | 20 | 200 | 0.350 | 0.605 | -0.911

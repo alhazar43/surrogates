@@ -1,0 +1,11 @@
+Part D. T1a rule: a subject pair passes when its minority order proportion is at least 0.1 (chosen),
+  among 100 students (the minimum, chosen). Probability that one pair passes, binomial:
+    true minority proportion 0.02: 0.000
+    true minority proportion 0.05: 0.028
+    true minority proportion 0.08: 0.278
+    true minority proportion 0.1: 0.549
+    true minority proportion 0.15: 0.945
+    true minority proportion 0.2: 0.998
+    true minority proportion 0.3: 1.000
+  locked pairs at 0.05, 0% of pairs at 0.2: expected share passing 0.028 against the 0.2 rule (chosen)
+  locked pairs at 0.05, 30% of pairs at 0.2: expected share passing 0.319 against the 0.2 rule (chosen)

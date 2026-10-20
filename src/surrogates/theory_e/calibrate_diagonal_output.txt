@@ -1,0 +1,30 @@
+1. Diagonal learner, true and read rho (mean of 20 learners); read at eta 0.01 and 0.005
+   linear, cue weights              true +0.000 read eta .01 -0.008 eta .005 -0.008 largest change per learner 0.0000 | read no feedback +0.021
+   linear, mixed weights            true +0.000 read eta .01 -0.008 eta .005 -0.008 largest change per learner 0.0000 | read no feedback -0.011
+   dense, rule absent               true -0.290 read eta .01 -0.291 eta .005 -0.291 largest change per learner 0.0008 | read no feedback -0.267
+   dense, rule held unused k=1      true -0.127 read eta .01 -0.132 eta .005 -0.131 largest change per learner 0.0003 | read no feedback -0.135
+   dense, uses both                 true +0.001 read eta .01 -0.004 eta .005 -0.004 largest change per learner 0.0001 | read no feedback -0.030
+   diagonal, rule absent            true -0.946 read eta .01 -0.939 eta .005 -0.940 largest change per learner 0.0006 | read no feedback -0.947
+   diagonal, rule held unused k=1   true -0.586 read eta .01 -0.573 eta .005 -0.574 largest change per learner 0.0010 | read no feedback -0.605
+   diagonal, uses both              true -0.004 read eta .01 +0.001 eta .005 -0.000 largest change per learner 0.0015 | read no feedback +0.015
+2. Diagonal learner, seed-level permutation test, alpha 0.05, 400 replicates
+   null N1d, diagonal absent vs absent      rejection 0.045 [0.027, 0.070]  mean read diff +0.002
+   planted, diagonal absent vs held k=0.25  rejection 0.122 [0.092, 0.159]  mean read diff +0.030
+   planted, diagonal absent vs held k=0.375 rejection 0.430 [0.381, 0.480]  mean read diff +0.067
+   planted, diagonal absent vs held k=0.5   rejection 0.865 [0.828, 0.897]  mean read diff +0.113
+   planted, diagonal absent vs held k=0.75  rejection 1.000 [0.991, 1.000]  mean read diff +0.239
+   planted, diagonal absent vs held k=1.0   rejection 1.000 [0.991, 1.000]  mean read diff +0.381
+3. True difference in rho, 20000 learners per arm (mean, sd per learner)
+   dense    k=0.0   rho absent -0.2937 held -0.2939 diff -0.0002  sd absent 0.0224 sd held 0.0225
+   dense    k=0.25  rho absent -0.2937 held -0.2822 diff +0.0115  sd absent 0.0224 sd held 0.0214
+   dense    k=0.375 rho absent -0.2937 held -0.2673 diff +0.0264  sd absent 0.0224 sd held 0.0206
+   dense    k=0.5   rho absent -0.2937 held -0.2478 diff +0.0459  sd absent 0.0224 sd held 0.0188
+   dense    k=0.75  rho absent -0.2937 held -0.1949 diff +0.0988  sd absent 0.0224 sd held 0.0152
+   dense    k=1.0   rho absent -0.2937 held -0.1281 diff +0.1656  sd absent 0.0224 sd held 0.0112
+   diagonal k=0.0   rho absent -0.9599 held -0.9603 diff -0.0005  sd absent 0.0348 sd held 0.0346
+   diagonal k=0.25  rho absent -0.9599 held -0.9309 diff +0.0290  sd absent 0.0348 sd held 0.0337
+   diagonal k=0.375 rho absent -0.9599 held -0.8962 diff +0.0637  sd absent 0.0348 sd held 0.0321
+   diagonal k=0.5   rho absent -0.9599 held -0.8493 diff +0.1106  sd absent 0.0348 sd held 0.0303
+   diagonal k=0.75  rho absent -0.9599 held -0.7267 diff +0.2332  sd absent 0.0348 sd held 0.0261
+   diagonal k=1.0   rho absent -0.9599 held -0.5805 diff +0.3794  sd absent 0.0348 sd held 0.0217
+run seconds 290

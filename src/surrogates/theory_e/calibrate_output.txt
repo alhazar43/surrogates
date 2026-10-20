@@ -1,0 +1,25 @@
+1. True rho from the weights, and rho read by one step (mean of 20 learners)
+   linear, cue weights              true +0.000 read +0.001 read no feedback -0.026 | z prac +2.01 z conf -1.99 | sibling move fb +1.74 no fb -0.26
+   linear, mixed weights            true +0.000 read +0.026 read no feedback +0.013 | z prac +2.01 z conf +0.03 | sibling move fb +0.99 no fb +0.10
+   two-layer, rule absent           true -0.296 read -0.293 read no feedback -0.311 | z prac +1.99 z conf -1.98 | sibling move fb +5.87 no fb -0.82
+   two-layer, rule held unused k=1  true -0.126 read -0.127 read no feedback -0.170 | z prac +1.96 z conf -1.96 | sibling move fb +6.82 no fb -1.03
+   two-layer, uses both             true -0.000 read -0.017 read no feedback +0.020 | z prac +2.02 z conf +0.01 | sibling move fb +3.34 no fb -0.19
+2. False positive rate and power of the seed-level permutation test, alpha 0.05
+   null N0, linear cue vs linear mixed    rejection 0.050 [0.031, 0.076]  mean read diff +0.003  true diff +0.000
+   null N1, two-layer absent vs absent    rejection 0.058 [0.037, 0.085]  mean read diff +0.006  true diff +0.003
+   planted, absent vs held k=0.25         rejection 0.058 [0.037, 0.085]  mean read diff +0.015  true diff +0.007
+   planted, absent vs held k=0.5          rejection 0.185 [0.148, 0.227]  mean read diff +0.043  true diff +0.044
+   planted, absent vs held k=0.75         rejection 0.593 [0.543, 0.641]  mean read diff +0.098  true diff +0.099
+   planted, absent vs held k=1.0          rejection 0.958 [0.933, 0.975]  mean read diff +0.167  true diff +0.163
+3. The wrong unit: case-level paired t-test, one learner per arm
+   null N0, linear cue vs linear mixed    rejection 0.050 [0.031, 0.076]
+   null N1, two-layer absent vs absent    rejection 0.690 [0.642, 0.735]
+3b. Raw ratio of means without dividing each case by its delivery scalar, seed-level test
+   null N0, linear cue vs linear mixed    rejection 0.120 [0.090, 0.156]  mean read diff -0.033
+4. Entrenchment in the diagonal two-feature learner (B25, B26 point 3)
+   weight penalty 0.0: practiced z 1.000, P_u 0.585, P_v 0.1222, rho start -0.105 end -0.655, log-ratio exponent 1.500
+   weight penalty 0.05: practiced z 0.967, P_u 0.644, P_v 0.0002, rho start -0.105 end -0.999, log-ratio exponent nan
+5. Bayesian mixture over two rules, slip 0.1 over 4 options, one conflict case with key
+   prior rule weight 0.01: posterior 0.214; practiced probes move 0, so rho_ctx = 0
+   prior rule weight 0.1: posterior 0.750; practiced probes move 0, so rho_ctx = 0
+   prior rule weight 0.3: posterior 0.920; practiced probes move 0, so rho_ctx = 0

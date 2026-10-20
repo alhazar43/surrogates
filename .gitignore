@@ -1,0 +1,9 @@
+# copies of papers fetched during reading; cited by arXiv id, not redistributed
+*.pdf
+*.html
+notes/units/*_src/
+**/dl/
+**/[0-9][0-9][0-9][0-9].[0-9]*.txt
+# python
+__pycache__/
+*.pyc
