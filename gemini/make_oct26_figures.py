@@ -323,9 +323,8 @@ ax.set_xlabel("Subject Mean Log-Odds Advantage $\\overline{\\Delta L}_{\\mathrm{
 set_title_and_subtitle(
     ax,
     "Fig 4. Clue #2: GRPO Leads All 8 High-$a_m^{\\mathrm{pop}}$ Subjects; SFT Leads 5 of 6 Low-$a_m^{\\mathrm{pop}}$ Subjects",
-    f"Sorted by $\\bar{{a}}_m^{{\\mathrm{{pop}}}}$: $r(\\bar{{b}}_m^{{\\mathrm{{pop}}}}, \\Delta) = {r_b:+.4f}$ ($R^2 = {r_b**2*100:.1f}\\%$, OLS slope ${mb:+.2f}$); "
-    f"$r(\\bar{{a}}_m^{{\\mathrm{{pop}}}}, \\Delta) = {r_a:+.4f}$ ($R^2 = {r_a**2*100:.1f}\\%$)",
-    title_size=11.8
+    f"15 seen S1 subject means: $r(\\bar{{b}}_m^{{\\mathrm{{pop}}}}, \\Delta) = {r_b:+.4f}$ ($R^2 = {r_b**2*100:.1f}\\%$, slope ${mb:+.2f}$; partial $r = 0.17$ `all` / $0.25$ `parsed` given $\\overline{{L}}_{{\\mathrm{{base}},m}}$); $r(\\bar{{a}}_m^{{\\mathrm{{pop}}}}, \\Delta) = {r_a:+.4f}$",
+    title_size=11.6, sub_size=8.3
 )
 
 # Place red box in the completely empty top-right quadrant (x > 0.12, y in [8..13])
@@ -671,9 +670,9 @@ ax.set_xlabel("RL Training Update (`Q1` `grpo` Arm, $G = 5$ Rollouts per Prompt)
 ax.set_ylabel("Prompts with Zero Reward Variance `zero_adv_share` (%)", fontsize=11)
 set_title_and_subtitle(
     ax,
-    "Fig 10. Why $G = 5$ GRPO Stalls After Update 83: 63.1% of Prompts Produce Zero Gradient",
-    "Only $G=5$ `grpo` has `zero_adv_share`; the $G=1$ critics (`ctt, pop0, pop1`) have nonzero $r - \\hat{p}_j$ and higher concentration (`stable_12 = 0.866–0.942`, Table 3)",
-    title_size=11.6, sub_size=8.3
+    "Fig 10. In $G = 5$ GRPO, Zero-Advantage Prompts Rise to 63.1% Coinciding with the Post-u83 Plateau",
+    "Only $G=5$ `grpo` has `zero_adv_share`; $G=1$ critics (`ctt, pop0, pop1`) have no zero-advantage groups yet also plateau as they concentrate (`stable_12 = 0.866–0.942`)",
+    title_size=11.3, sub_size=8.2
 )
 ax.legend(loc="lower right", frameon=True, fontsize=8.6)
 save_fig(fig, "Fig10_grpo_zero_advantage_starvation")
