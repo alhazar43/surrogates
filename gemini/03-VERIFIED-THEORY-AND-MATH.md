@@ -63,23 +63,35 @@ Every mathematical derivation below has been cross-checked against its independe
 
 ---
 
-## 2. `plms-recent/learner-state` & `daydream` & `ability-tracker`: Mathematical Theory of Passive Logs (`[VERIFIED-MATH]`)
+## 2. `irt4llm/notes/theory-kt-irt/{math,cs}.md` & `plan-within-run.md`: Within-Run Person-Slope & Option-Level Theory (`[VERIFIED-MATH]`)
 
-Located in [`learner-state/base/sources/identification.md`](file:///C:/Users/steph/.gemini/antigravity-cli/brain/d00b65ad-c24f-4025-8dd4-1c0acb407e49/scratch/plms-recent/learner-state/base/sources/identification.md), [`failures.md`](file:///C:/Users/steph/.gemini/antigravity-cli/brain/d00b65ad-c24f-4025-8dd4-1c0acb407e49/scratch/plms-recent/learner-state/base/sources/failures.md), [`daydream/memo.md`](file:///C:/Users/steph/.gemini/antigravity-cli/brain/d00b65ad-c24f-4025-8dd4-1c0acb407e49/scratch/plms-recent/daydream/memo.md), and [`ability-tracker/notes/delivery/synthesis.md`](file:///C:/Users/steph/.gemini/antigravity-cli/brain/d00b65ad-c24f-4025-8dd4-1c0acb407e49/scratch/plms-recent/ability-tracker/notes/delivery/synthesis.md):
+*(Note: Per `irt4llm/CLAUDE.md`, `learner-state` is strictly excluded and never opened, cited, or copied here.)*
 
-1. **Second-Order $\mathcal{O}(\Delta^2)$ Likelihood Contribution of Specific Transfer vs. First-Order $\mathcal{O}(1)$ Standing Absorption (`failures.md §1.1–1.2`, `identification.md Prop 6.1, 10.1`)**:
-   - In any state-space filter with evidence gain $g$, the filter catches up to an unanticipated skill transfer step $\Delta$ in $\sim 1/g$ attempts, contributing only $\Delta\mathcal{L} \approx \frac{h\Delta^2}{4g} \sim 10^{-4}\text{ nats/answer}$ to one-step log-likelihood (`37x–42x` below the 80%-power detection threshold on Junyi J15 and `140x–162x` below detection on EdNet KT4).
-   - Conversely, any unmodelled local content standing $\delta_t$ ($0.3\text{–}0.7$ logit) enters the stationary point of the transition matrix $\hat{\theta}_W - \theta^*_W \approx \mathcal{J}_{W\cdot o}^{-1}\sum_t \mathbb{E}[p_t(1-p_t)\delta_t g_t]$ at **first order**, outweighing true transfer in the quadratic likelihood by **$5,000\times$ to $3,000,000\times$**.
-2. **Row-Mean & In-Span Non-Identification (`identification.md Props 1.1 & 2.1`)**:
-   - Because $\sum_{k=1}^K n_k(t) = t$, $(G, \tau) \mapsto (G - c\mathbf{1}^\top, \tau + c)$ leaves all path logits invariant (only row contrasts $g_{AA} - g_{AB}$ are identifiable without calendar clocks).
-   - Under an unrestricted ability trajectory $\theta_i(t)$, $\theta'_i(t) = \theta_i(t) + A^+ W x_i(t)$ absorbs all in-span transfer $AA^+W$.
-3. **Closed-Loop Adaptive Routing Non-Identification (`identification.md Thms 4.1–4.3`, `daydream/memo.md Entry 7 / Shin 2025`)**:
-   - By Forssell & Ljung (1999) and Bonhomme, Dano & Graham (2023), when item assignment depends on standing with slope $\gamma \neq 0$ (even $\gamma^* = 0.006$ on J15, $8\times$ smaller than its own SE), direct prediction-error estimation converges to $G_0 + B$ (inventing $+0.259$ spurious transfer per 10 attempts under remedial routing).
-   - By **Shin (2025, arXiv:2511.02816) Propositions 2.2 & 2.3**, in a dynamic panel logit with Markovian feedback $P(X_{it}=x \mid X_{i,t-1}, Y_{i,t-1}, \alpha_i)$, the **covariate/transfer effect $\beta$ is NOT point-identified for any $T$**, whereas own-lag state dependence $\rho$ IS identified for $T \ge 3$—providing the exact theorem for why passive tutoring logs show *"within-skill growth yes, cross-skill transfer no"*.
-4. **van Trees Information Bound on Per-Learner Plasticity (`identification.md Prop 8.1`)**:
-   - By Gill & Levit (1995), per-learner learning-rate reliability is bounded by $\text{rel}_i \le \frac{\sigma_\delta^2 \bar{I}_i}{1 + \sigma_\delta^2 \bar{I}_i}$ with $\bar{I}_i \approx \frac{p(1-p)n_i^3}{12 K_i^2} \le \mathbf{0.004\text{–}0.019}$ at median student log lengths ($n = 8\text{–}11$).
-5. **The Permutation-Contrast Objective $J$ (`ability-tracker/notes/delivery/synthesis.md §3`)**:
-   - Defining $J = \sum_i [L(r_i; W) - L(\pi_i r_i; W) + L(\pi_i r_i; 0)] - \kappa\|W\|_1$ where $h_t$ is an order-invariant prefix set-function ensures $\mathbb{E}[\nabla_W(L(r;W) - L(\pi r;W))] = 0$ under any exchangeable static learner, **cancelling all static omitted-standing biases in expectation by construction**.
+1. **Key-Contrast Decomposition & Consistent Errors-in-Variables Gain Estimator (`math.md §1.1`, `plan-within-run.md §3`)**:
+   - Let $\ell_{sjr}$ be the key logit minus mean distractor logit in option order $r \in \{1,\dots,R\}$, $\mu_{sj} = \mathbb{E}_r \ell_{sjr}$, and $\nu_{sjr} = \ell_{sjr} - \mu_{sj}$:
+     $$\mu_{sj} = \tau_s \mu_{0j} + \delta_s + \kappa_{sj}, \qquad \kappa_{sj} = \tilde{\phi}_j + g_s \tilde{a}_j + \varepsilon_{sj}, \qquad \nu_{sjr} = \omega_s \nu_{0jr} + \eta_{sjr}.$$
+   - With $R \ge 2$ option orders in both states, $\omega_s$ and the order noise $\sigma_0^2$ are identified, and the consistent errors-in-variables person-slope estimator is:
+     $$\hat{\tau}_s = \frac{\operatorname{Cov}_j(\bar{L}_s, \bar{L}_0) - \hat{\omega}_s \hat{\sigma}_0^2 / R}{\operatorname{Var}_j(\bar{L}_0) - \hat{\sigma}_0^2 / R}, \qquad \operatorname{Var}(\hat{\kappa}_{sj} \mid \kappa_{sj}) = \frac{\sigma_s^2 + (\omega_s - \tau_s)^2 \sigma_0^2}{R}.$$
+   - Separating item-specific gain $\tilde{a}_j$ from offset $\tilde{\phi}_j$ requires $T \ge 2$ states of distinct $g_s$, and non-affine residual $\varepsilon_{sj}$ requires $T \ge 3$ (`math.md Prop 1`).
+
+2. **Nested Option-Level Models (`N0–N4`) & Modal-Answer Invariance (`math.md §5.1`, `plan-within-run.md §3`)**:
+   - Let $\eta_{0jo} = \log \pi_0(o\mid j) - \frac{1}{4}\sum_{o'} \log \pi_0(o'\mid j)$ be the centered log-probability of option $o$ at state $s=0$:
+     - **`N0` (1PL shift)**: $\pi_s(o\mid j) \propto \exp(\eta_{0jo} + \delta_s \mathbf{1}[o=k_j])$.
+     - **`N1` (Person slope)**: $\pi_s(o\mid j) \propto \exp(\kappa_s \eta_{0jo})$. Under `N1` with $\kappa_s > 0$, $\arg\max_o \pi_s(o\mid j) = \arg\max_o \eta_{0jo}$ for every item, so the modal-key fraction satisfies $A_\infty(s) = A_\infty(0)$ and accuracy approaches $A_\infty(0)$ as $\kappa_s \to \infty$ (while finite-$\kappa_s$ accuracy is not bounded by $A_\infty(0)$).
+     - **`N2` (Person slope + shift)**: $\pi_s(o\mid j) \propto \exp(\kappa_s \eta_{0jo} + \delta_s \mathbf{1}[o=k_j])$. Under `N2`, `pass@k` at every $k$ is determined by two person parameters $(\kappa_s, \delta_s)$ via $\operatorname{mean}_j[1 - (1 - \pi_s(k_j\mid j))^k]$ (`Prediction P11`).
+     - **`N3` (Within-run option slopes $\lambda_{jo}$)**: $\pi_s(o\mid j) \propto \exp(\kappa_s \eta_{0jo} + \delta_s \mathbf{1}[o=k_j] + \theta_s \lambda_{jo})$, identified up to sign under $\sum_o \lambda_{jo} = 0$, $\lambda \perp \eta_0$, $\lambda \perp \mathbf{1}[o=k_j]$, $\sum_{j,o}\lambda_{jo}^2 = J$.
+   - **Keyed Margin Sign Law (`math.md §2.3, §5.1`, `Prediction P9`)**: With 4 options, the sign of an item's key-probability change under a gain $\kappa_s > 1$ is the sign of its **keyed margin** $\eta_{0jk} - \sum_{o\neq k}\frac{q_o}{1-q_k}\eta_{0jo}$, which lies between $\operatorname{logit} p_{\text{key}} + \log 3$ (equal distractors, zero at $p_{\text{key}} = 1/4$) and $\operatorname{logit} p_{\text{key}}$ (one dominant distractor).
+
+3. **Expected Policy Gradient Along the Gain Direction (`math.md §2.1–2.4`, `cs.md §3.3`)**:
+   - For binary reward, $G$ on-policy rollouts, and group-normalized advantage:
+     $$\mathbb{E}\!\left[\frac{1}{G}\sum_{g=1}^G A_g \nabla_w \log \pi_w(y_g)\right] = c_G(p_j)\nabla_w z_j, \qquad c_G(p) = G^{-1}\mathbb{E}_{n\sim\text{Bin}(G,p)}\sqrt{n(G-n)}.$$
+   - In a Llama-type network with final RMSNorm scale $g_n$, scaling $g_n$ by $\gamma$ scales every logit by $\gamma$. The component of one GRPO group's score along that direction is $\sqrt{n(G-n)}(\bar{c}_1 - \bar{c}_0)$, where $c(y) = \sum_t (z_t(y_t) - \mathbb{E}_{v\sim\pi_t} z_t(v))$ is the inverse-temperature derivative of $\log \pi(y)$. Thus GRPO sharpens ($\tau_s > 1$) when correct rollouts are more typical of the policy than wrong ones ($\bar{c}_1 > \bar{c}_0$), whereas SFT on unfamiliar teacher traces $y^*$ has push $c(y^*) < 0$ and flattens ($\tau_s < 1$, `Prediction P12`).
+   - Under 4 options, prompts with $p_{\text{key}} < 1/4$ give a negative push on $\tau$. Therefore, filtering out `0, 1, 7, 8 of 8` in `M1c` **raises** the expected stationary gain ($\log \tau_c / \log \tau_b = 1.18\text{ to }1.30$, `Prediction P5`).
+
+4. **Within-Run Discrimination as a Trajectory Derivative (`math.md §4.1–4.2`, `Predictions P7, P8`)**:
+   - Let $u$ be the first right singular vector of the centered weight trajectory $\Delta w(t)$, $g(t)$ its score, and $\hat{a}_j$ the OLS slope of $z_j(w(t))$ on $g(t)$. To first order:
+     $$\hat{a}_j = J_j u + R_j = \frac{u \cdot e_\gamma}{\|t_\gamma\|} z_j(w(0)) + J_j u_\perp + R_j, \qquad J_j = \nabla_w z_j(w(0)),$$
+     where the first term is the common gain along the final-norm tangent $t_\gamma$ ($J_j t_\gamma = z_j(w(0))$) and $\tilde{a}_j \approx J_j u_\perp$ is the item-specific within-run discrimination (out-of-sample by construction).
 
 ---
 
