@@ -45,15 +45,19 @@
 
 ---
 
-### **Slide 3 — Act 2A (`CAN` vs. `CANNOT` in Evaluation): 2PL Adaptive Short Testing Works on Pretraining Checkpoints, Reverses After Post-Training (`Q2c` vs. `Q2a`)**
-- **Figure**: **`Fig02_adaptive_testing_can_vs_cannot.png`**
-- **What Standard LLM Eval Does**: Administers all benchmark items or a random subset of $n$ items (`RMSE` shrinks slowly as $1/\sqrt{n}$).
-- **What Item Parameters CAN Do (`Left Panel — Q2c`, `165` Pretraining Checkpoints across 6 model families)**:
-  - Selecting $n$ items by maximum 2PL Fisher information ($I_i = a_i^2 \hat{p}_i(1-\hat{p}_i)$) **cuts estimation error by `35%` at $n = 25$ (`RMSE = 6.4%` vs. `9.8%` for random items)** and beats random sampling at $n = 50$ (`6.4%` vs. `7.0%`).
-  - **`25` adaptive items estimate checkpoint accuracy more precisely than `50` random items.**
-- **What Item Parameters CANNOT Do (`Right Panel — Q2a`, `7` Post-Trained SFT & GRPO Models in `S1`)**:
-  - On models that have undergone **SFT post-training (`t9_sft_0..2`)**, the exact same 2PL adaptive test **reverses and has higher error than simple random sampling at every test length ($n = 25, 50, 100$)** (`11.4%` vs. `7.3%` at $n=25$; `5.1%` vs. `3.7%` at $n=100$; on the `3` GRPO models `t9_rl_0..2`, 2PL adaptive testing wins at $n=25$ (`7.0%` vs. `8.0%`) before reversing at $n=50, 100$).
-  - **Why?** Maximum-information selection greedily picks the highest-discrimination questions (`mean a = 1.85` vs. `0.71` in the bank), which are the exact questions where SFT models deviate from the cross-model leaderboard curve.
+### **Slide 3 — Act 2A (`CAN` vs. `CANNOT` in Evaluation): Extending $n$ from `10` to All `1,472` Items Shows 2PL Adaptive Fails by Asymptotic Bias, Not Initialization (`Q2c` vs. `Q2a`)**
+- **Figure**: **`Fig02_adaptive_testing_can_vs_cannot.png`** (`n = 10, 25, 50, 100, 200, 300, 500, 750, 1000, 1472`)
+- **Refuting the *"Is $n=100$ just initialization for an LLM?"* Critique (`Left Panel — Full n = 10..1,472 RMSE Curve`)**:
+  - **At tiny $n \le 50$ (`Small-n / Prior Regime`), 2PL IRT actually *helps***: On the `165` pretraining checkpoints (`Q2c`), maximum-information 2PL selection cuts RMSE by **`35%` at $n = 25$ (`6.4%` vs. `9.8%`)** and still leads at $n = 50$ (`6.4%` vs. `7.0%`), because the prior and high-$a_j$ items compress $1/\sqrt{n}$ sampling variance.
+  - **Past the Crossover ($n \ge 100$), IRT loses—and extending $n \to 1,472$ makes IRT lose *harder***:
+    - Even on the `165` pretraining checkpoints (`Q2c`), 2PL adaptive already **loses to random sampling at $n = 100$ (`6.26%` vs. `4.97%`, ratio `1.26x`)**.
+    - Across the `7` post-trained models (`Base`, `3 SFT`, `3 GRPO` on the `1,472`-item MMLU bank, `k=16`), unweighted random sampling drops along $1/\sqrt{n}$ (`10.9% -> 6.7% -> 4.7% -> 3.3% -> 2.2% -> 1.7% -> 1.3% -> 0.4%` at $n=1,472$), **beating BOTH `irt_adaptive` and `irt_random` on `7 / 7` (`100%`) of models for all $n \ge 300$**!
+    - Meanwhile, `irt_adaptive` and `irt_random` stay stuck above a **`2.85%` asymptotic error floor even when all $n = 1,472$ items (`100%` of the bank) are administered** (`+2.38%` SFT, `+2.91%` Base, `+3.29%` GRPO).
+- **Why Larger $n$ Cannot Rescue 2PL IRT (`Right Panel — Systematic |Bias| vs. Sampling SD`)**:
+  - **Not an initialization issue**: `2PL Adaptive` sampling SD drops to **`< 0.4%` by $n = 100$** (`0.19%` at $n=1,472$)—the posterior $\hat{\theta}_n$ has completely converged.
+  - **Two stacked bias mechanisms**:
+    1. **Fisher Selection Bias (`+4%` to `+8%` for $n = 25\text{–}500$)**: Greedy Fisher selection ($a_j^2 p_j(1-p_j)$) picks high-$a_j$ easy factual subjects first (*Marketing*, *Sociology*), skewing $\hat{\theta}_n$ away from the full-bank mean.
+    2. **2PL Parametric Misspecification Floor (`2.85%` at $n = 1,472$)**: Even when all `1,472` items are observed, mapping $\hat{\theta}_{1472}$ through the 1D cross-model curve $\frac{1}{J}\sum_{j=1}^J \sigma(a_j(\hat{\theta} - b_j))$ does not equal the respondent's true bank average.
 
 ---
 

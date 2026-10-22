@@ -122,66 +122,120 @@ def make_fig01():
 
 
 # ==============================================================================
-# FIGURE 2: 2PL Adaptive Short Testing — CAN on Pretraining Checkpoints (Q2c)
-# vs. CANNOT on Post-Trained SFT / GRPO Models (Q2a)
+# FIGURE 2: 2PL Adaptive Testing Across Full Test Length (n = 10 to 1,472)
+# Left: Crossover from small-n prior/variance gain (n <= 50) to large-n failure (n = 100..1,472)
+# Right: Bias vs. Sampling SD decomposition refuting the "n=100 is just initialization" critique
 # ==============================================================================
 def make_fig02():
     with open(os.path.join(RESULTS, "Q2c", "summary.json")) as f:
         q2c = json.load(f)["outcome"]["cells"]
-    q2a_err = pd.read_csv(os.path.join(RESULTS, "Q2a", "errors.csv"))
-    q2a_state = q2a_err[q2a_err["target"] == "state"]
+    ext_df = pd.read_csv(r"D:\surrogates\gemini\q2a_extended_n_t9r.csv")
+    ext_df["abs_bias"] = ext_df["bias"].abs()
 
-    ns = [25, 50, 100]
-    # Left panel: Q2c 165 pretraining checkpoints (accuracy > 45%)
-    c_rand = [q2c[f"above 0.45 n={n}"]["rmse_classical"] * 100.0 for n in ns]
-    c_adap = [q2c[f"above 0.45 n={n}"]["rmse_irt_adaptive"] * 100.0 for n in ns]
+    ns_ext = [10, 25, 50, 100, 200, 300, 500, 750, 1000, 1472]
+    k16 = ext_df[ext_df["k"] == 16].groupby(["n", "method"])[["rmse", "abs_bias", "sd"]].mean().unstack() * 100.0
 
-    # Right panel: Q2a 7 post-trained states (Base, 3 SFT, 3 GRPO), k=16 draws
-    a_sub = q2a_state[q2a_state["k"] == 16].groupby(["n", "method"])["rmse"].mean().unstack() * 100.0
-    a_rand = [a_sub.loc[n, "classical"] for n in ns]
-    a_adap = [a_sub.loc[n, "irt_adaptive"] for n in ns]
+    ns_q2c = [25, 50, 100]
+    c_rand = [q2c[f"above 0.45 n={n}"]["rmse_classical"] * 100.0 for n in ns_q2c]
+    c_adap = [q2c[f"above 0.45 n={n}"]["rmse_irt_adaptive"] * 100.0 for n in ns_q2c]
 
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12.2, 5.2), sharey=True)
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14.4, 5.8), sharey=False)
+    fig.subplots_adjust(wspace=0.28)
 
-    # Left panel: CAN (Pretraining Checkpoints)
-    ax1.plot(ns, c_rand, "-o", color="#475569", linewidth=2.5, markersize=8)
-    ax1.plot(ns, c_adap, "-s", color="#16A34A", linewidth=2.8, markersize=8)
-    for x, yr, ya in zip(ns, c_rand, c_adap):
-        ax1.text(x, yr + 0.45, f"{yr:.1f}%", ha="center", fontsize=10, fontweight="bold", color="#334155")
-        offset = -0.75 if x < 100 else 0.45
-        ax1.text(x, ya + offset, f"{ya:.1f}%", ha="center", fontsize=10, fontweight="bold", color="#15803D")
+    # Left panel: Full n = 10 -> 1,472 RMSE trajectory (log scale x-axis)
+    y_cl = [k16["rmse"].loc[n, "classical"] for n in ns_ext]
+    y_rd = [k16["rmse"].loc[n, "irt_random"] for n in ns_ext]
+    y_ad = [k16["rmse"].loc[n, "irt_adaptive"] for n in ns_ext]
 
-    ax1.text(38, 8.8, "Random questions\n(standard eval)", fontsize=10.5, fontweight="bold", color="#334155")
-    ax1.text(25, 4.1, "2PL adaptive selection\n(35% lower error at n = 25)", fontsize=10.5, fontweight="bold", color="#15803D")
-    ax1.set_title("CAN: Short-Test Eval on Pretraining Checkpoints\n(165 checkpoints across 6 pretraining runs)",
-                  color="#15803D", pad=10)
-    ax1.set_xlabel("Number of Test Questions Administered (n)")
+    ax1.plot(ns_ext, y_cl, "-o", color="#1E293B", linewidth=2.6, markersize=6.5, zorder=4)
+    ax1.plot(ns_ext, y_rd, "--^", color="#2563EB", linewidth=2.2, markersize=6.0, zorder=3)
+    ax1.plot(ns_ext, y_ad, "-s", color="#DC2626", linewidth=2.8, markersize=6.5, zorder=5)
+
+    # Also plot Q2c pretraining adaptive crossover (n=25, 50, 100) as green diamonds
+    ax1.plot(ns_q2c, c_adap, ":D", color="#16A34A", linewidth=2.4, markersize=6.5, zorder=3)
+
+    # Clean direct annotations with leader arrows so zero text touches a curve
+    ax1.annotate("2PL Adaptive (Base / SFT / GRPO)\nStays above 2.85% floor even at n = 1,472",
+                 xy=(25, y_ad[1]), xytext=(58, 10.6),
+                 arrowprops=dict(arrowstyle="->", color="#B91C1C", lw=1.5),
+                 fontsize=9.3, fontweight="bold", color="#B91C1C")
+
+    ax1.annotate("Pretraining checkpoints (Q2c, 165 models)\nWins at n=25 (6.4% vs 9.8%), loses by n=100 (6.3% vs 5.0%)",
+                 xy=(100, c_adap[2]), xytext=(65, 7.6),
+                 arrowprops=dict(arrowstyle="->", color="#15803D", lw=1.5),
+                 fontsize=8.9, fontweight="bold", color="#15803D")
+
+    ax1.annotate("2PL IRT + Random items\n(same 2.85% floor at n = 1,472)",
+                 xy=(750, y_rd[7]), xytext=(160, 5.1),
+                 arrowprops=dict(arrowstyle="->", color="#1D4ED8", lw=1.4),
+                 fontsize=8.9, fontweight="bold", color="#1D4ED8")
+
+    ax1.annotate("Unweighted Random Mean (1/\u221an \u2192 0.4%)\nBeats IRT on 7/7 states for all n \u2265 300",
+                 xy=(200, y_cl[4]), xytext=(16, 0.55),
+                 arrowprops=dict(arrowstyle="->", color="#1E293B", lw=1.5),
+                 fontsize=9.0, fontweight="bold", color="#1E293B")
+
+    # Shade the small-n vs large-n regimes
+    ax1.axvspan(9, 55, color="#F0FDF4", alpha=0.65, zorder=0)
+    ax1.text(10.5, 12.1, "Small-n (n \u2264 50)\nPrior cuts variance",
+             fontsize=8.8, fontweight="bold", color="#166534")
+
+    ax1.set_xscale("log")
+    ax1.set_xticks([10, 25, 50, 100, 200, 500, 1472])
+    ax1.set_xticklabels(["10", "25", "50", "100", "200", "500", "1472\n(All)"])
+    ax1.set_xlim(9, 1750)
+    ax1.set_ylim(0, 13.5)
+    ax1.set_title("CAN at Tiny n=25 (Pretraining), CANNOT as n Grows (n = 10..1,472)\n(Random sampling \u2192 0%, while 2PL IRT hits a 2.85% asymptotic floor)",
+                  color="#1E293B", pad=10, fontsize=11.2)
+    ax1.set_xlabel("Questions Administered n (log scale, out of 1,472 MMLU items)")
     ax1.set_ylabel("Accuracy Estimation Error (RMSE, percentage points)")
-    ax1.set_xticks(ns)
-    ax1.set_xlim(15, 110)
-    ax1.set_ylim(2.5, 12.8)
-    ax1.grid(True, linestyle=":", alpha=0.4)
+    ax1.grid(True, which="both", linestyle=":", alpha=0.4)
 
-    # Right panel: CANNOT (Post-Trained SFT & GRPO Models)
-    ax2.plot(ns, a_rand, "-o", color="#475569", linewidth=2.5, markersize=8)
-    ax2.plot(ns, a_adap, "-s", color="#DC2626", linewidth=2.8, markersize=8)
-    for x, yr, ya in zip(ns, a_rand, a_adap):
-        ax2.text(x, yr - 0.75, f"{yr:.1f}%", ha="center", fontsize=10, fontweight="bold", color="#334155")
-        ax2.text(x, ya + 0.45, f"{ya:.1f}%", ha="center", fontsize=10, fontweight="bold", color="#B91C1C")
+    # Right panel: Bias vs Sampling SD decomposition across n = 10 -> 1,472
+    b_ad = [k16["abs_bias"].loc[n, "irt_adaptive"] for n in ns_ext]
+    sd_ad = [k16["sd"].loc[n, "irt_adaptive"] for n in ns_ext]
+    b_rd = [k16["abs_bias"].loc[n, "irt_random"] for n in ns_ext]
+    sd_cl = [k16["sd"].loc[n, "classical"] for n in ns_ext]
 
-    ax2.text(42, 3.3, "Random questions (unbiased)", fontsize=10.5, fontweight="bold", color="#334155")
-    ax2.text(45, 9.6, "2PL adaptive selection\n(worse at every n: picks high-a items\nwhere post-trained models misfit)",
-             fontsize=10, fontweight="bold", color="#B91C1C")
-    ax2.set_title("CANNOT: Same Adaptive Test After SFT / GRPO\n(7 post-trained Llama-3.2-1B states on 1,472 MMLU items)",
-                  color="#991B1B", pad=10)
-    ax2.set_xlabel("Number of Test Questions Administered (n)")
-    ax2.set_xticks(ns)
-    ax2.set_xlim(15, 110)
-    ax2.grid(True, linestyle=":", alpha=0.4)
+    ax2.plot(ns_ext, b_ad, "-s", color="#DC2626", linewidth=2.8, markersize=6.5)
+    ax2.plot(ns_ext, b_rd, "--^", color="#2563EB", linewidth=2.2, markersize=6.0)
+    ax2.plot(ns_ext, sd_cl, "-o", color="#475569", linewidth=2.2, markersize=5.5)
+    ax2.plot(ns_ext, sd_ad, ":s", color="#F87171", linewidth=2.2, markersize=5.0)
 
-    fig.suptitle("Figure 2: 2PL Adaptive Testing Cuts Error on Pretraining Checkpoints, But Reverses After Post-Training",
-                 fontsize=13.5, fontweight="bold", y=1.03)
-    fig.tight_layout()
+    # Highlight the two bias mechanisms cleanly in open whitespace
+    ax2.annotate("1. Fisher Selection Bias (+4% to +8%)\nGreedy selection picks high-a subjects first\n(Marketing/Sociology), skewing \u03b8_hat",
+                 xy=(50, b_ad[2]), xytext=(55, 8.8),
+                 arrowprops=dict(arrowstyle="->", color="#991B1B", lw=1.5),
+                 fontsize=9.1, fontweight="bold", color="#991B1B")
+
+    ax2.annotate("2. 2PL Misspecification Floor (2.85% at n = 1,472)\nEven when ALL 1,472 items are observed,\n1D 2PL curve mean_j \u03c3(a_j(\u03b8 - b_j)) \u2260 true bank mean",
+                 xy=(1472, b_ad[-1]), xytext=(110, 5.5),
+                 arrowprops=dict(arrowstyle="->", color="#1E3A8A", lw=1.5),
+                 fontsize=9.0, fontweight="bold", color="#1E3A8A")
+
+    ax2.annotate("Random Sampling SD\n(1/\u221an \u2192 0%, zero bias)",
+                 xy=(25, sd_cl[1]), xytext=(10.5, 4.3),
+                 arrowprops=dict(arrowstyle="->", color="#334155", lw=1.4),
+                 fontsize=8.8, fontweight="bold", color="#334155")
+
+    ax2.annotate("2PL Adaptive Sampling SD\n(< 0.4% for n \u2265 100: NOT initialization!)",
+                 xy=(100, sd_ad[3]), xytext=(14, 1.45),
+                 arrowprops=dict(arrowstyle="->", color="#B91C1C", lw=1.4),
+                 fontsize=8.6, fontweight="bold", color="#B91C1C")
+
+    ax2.set_xscale("log")
+    ax2.set_xticks([10, 25, 50, 100, 200, 500, 1472])
+    ax2.set_xticklabels(["10", "25", "50", "100", "200", "500", "1472\n(All)"])
+    ax2.set_xlim(9, 1750)
+    ax2.set_ylim(0, 11.8)
+    ax2.set_title("Why Larger n Does Not Rescue 2PL IRT: Variance Vanishes, Bias Remains\n(Decomposing Error into Systematic |Bias| vs. Sampling SD)",
+                  color="#991B1B", pad=10, fontsize=11.2)
+    ax2.set_xlabel("Questions Administered n (log scale, out of 1,472 MMLU items)")
+    ax2.set_ylabel("Error Component (percentage points)")
+    ax2.grid(True, which="both", linestyle=":", alpha=0.4)
+
+    fig.suptitle("Figure 2: Extending n to All 1,472 Items Shows 2PL Adaptive Fails by Asymptotic Bias, Not Initialization",
+                 fontsize=13.5, fontweight="bold", y=1.04)
     save_both(fig, "Fig02_adaptive_testing_can_vs_cannot.png")
 
 
