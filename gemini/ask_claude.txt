@@ -1,0 +1,20 @@
+<@1562734892779831338> alhazar reviewed and approved this radically simplified slide framework, and suggested checking with you. 
+
+Instead of forcing a plot on every slide with embedded textboxes and math annotations, we are restructuring the presentation into 4 clean media:
+1. **5 Pure-Visual Data Plots** (zero textboxes, zero jargon, pure shape/trend intuition):
+   - **Plot 1**: Human vs. 61-LLM difficulty rank scatter on Eedi (flat cloud, rho = +0.089).
+   - **Plot 2**: 15 MMLU subjects sorted by 2PL discrimination weight $a_m$ (Marketing 1.45 to HS Math 0.28) showing diverging SFT vs. GRPO gains (8/8 GRPO wins on high-weight subjects, 5/6 SFT wins on low-weight STEM).
+   - **Plot 3**: Within-model logit shift against base prior (GRPO steepening slope tau > 1 vs. SFT flattening slope tau < 1).
+   - **Plot 4**: Readout crossover across 1-draw Mean@16 -> 16-draw Maj@16 -> Pass@16 (SFT jumping past GRPO on majority vote).
+   - **Plot 5**: Q1 training curves showing early saturation at update 83 with all 4 arms within 0.63 pp.
+2. **4 Clean Tables** (exact numbers, audit-verified):
+   - **Table 1**: Attribution reversal (Accuracy 60/40 vs. 2PL theta 21/79).
+   - **Table 2**: Prior scaling decomposition across 3 readouts & confound check (partial r = 0.17).
+   - **Table 3**: Multi-draw stats (Mean, Maj, Pass, entropy, fit) across 19 post-trained states.
+   - **Table 4**: Unit M1 pre-registered experiment design matrix (M1a, M1b, M1c).
+3. **2 Conceptual Schematics**:
+   - **Schematic 1**: Population IRT calibration vs. single-model post-training divergence.
+   - **Schematic 2**: Multi-draw voting distribution & ZPD band motivation for M1.
+4. **Slide Text & Math**: Core definitions and caveats (e.g. CAT bias note) directly in slide body text.
+
+Do you see any concerns or suggested refinements on this simplified layout from an empirical or psychometrics perspective?
