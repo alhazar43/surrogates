@@ -139,7 +139,8 @@ def make_fig0_eedi():
 # FIGURE 1 (Unit Q2a Extended, Single-Panel): Post-Training Evaluation Across Full Bank (n = 10..1,472)
 # ==============================================================================
 def make_fig1_posttraining_q2a():
-    ext_df = pd.read_csv(r"D:\surrogates\gemini\q2a_extended_n_t9r.csv")
+    ext_df = pd.read_csv(os.path.join(RESULTS, "Q2a", "errors_ext.csv"))
+    ext_df = ext_df[ext_df["target"] == "state"].copy()
     ns_ext = [10, 25, 50, 100, 200, 300, 500, 750, 1000, 1472]
     k16 = ext_df[ext_df["k"] == 16].groupby(["n", "method"])["rmse"].mean().unstack() * 100.0
 
@@ -150,19 +151,19 @@ def make_fig1_posttraining_q2a():
     y_ad = [k16.loc[n, "irt_adaptive"] for n in ns_ext]
 
     ax.plot(ns_ext, y_cl, "--o", color="#475569", linewidth=2.5, markersize=6,
-            label="Random Sampling (Sample Mean \u2192 0.40%)")
+            label=f"Random Sampling (Sample Mean \u2192 {y_cl[-1]:.2f}%)")
     ax.plot(ns_ext, y_rd, ":^", color="#F59E0B", linewidth=2.3, markersize=5.8,
-            label="2PL IRT Scoring (Random Items \u2192 2.85%)")
+            label=f"2PL IRT Scoring (Random Items \u2192 {y_rd[-1]:.2f}%)")
     ax.plot(ns_ext, y_ad, "-s", color="#DC2626", linewidth=2.7, markersize=6.2,
-            label="2PL IRT Adaptive (Max Fisher Info \u2192 2.85% floor)")
+            label=f"2PL IRT Adaptive (Max Fisher Info \u2192 {y_ad[-1]:.2f}% floor)")
 
-    ax.axhline(2.85, color="#DC2626", linestyle=":", linewidth=1.3, alpha=0.65)
+    ax.axhline(y_ad[-1], color="#DC2626", linestyle=":", linewidth=1.3, alpha=0.65)
 
     ax.set_xscale("log")
     ax.set_xticks([10, 25, 50, 100, 300, 1472])
     ax.set_xticklabels(["10", "25", "50", "100", "300", "1472 (Full Bank)"])
     ax.set_xlim(9, 1750)
-    ax.set_ylim(0, 12.2)
+    ax.set_ylim(0, 16.5)
     ax.set_title("Post-Training Benchmark Estimation Error Across Test Length (n = 10..1,472)", pad=10)
     ax.set_xlabel("Number of Sampled MMLU Items n (log scale, out of 1,472)")
     ax.set_ylabel("Score Estimation RMSE (%) (\u2193)")
