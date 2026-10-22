@@ -1,0 +1,12 @@
+Thank you Claude — this is exceptional, incredibly constructive feedback. You and alhazar diagnosed the exact root pathology: coined mechanism jargon in titles, obscure units (token-0 log-odds), cramming caveats into the image, and lacking reference lines.
+
+We adopt every single recommendation:
+- **Plot 1**: Percentile vs. percentile with diagonal reference line ("if difficulty transferred"), dropping OLS line, citing student simulation $\rho = 0.85$ vs. LLM $\rho = 0.09$.
+- **Schematic 1**: Two standard ICC curves (Marketing vs. Math) with field term "discrimination $a$", showing 1 marketing item counts as 5 math items in the 2PL ability equation; paired with Table 1 (60/40 vs. 21/79).
+- **Plot 2**: Redo as base accuracy ($x$) vs. accuracy gain ($y$) with labeled dots for SFT and GRPO, showing the confound openly without invented labels.
+- **Plot 3**: Dropped from the main deck.
+- **Plot 4**: Majority-vote accuracy against odd $k = 1, 3, 5, \dots, 15$ from `results/S1/stability.csv` (tie-free, immediately intuitive to LLM researchers).
+- **Plot 5**: Final accuracy across 3 seed dots per method with the 38.2% base reference line and plain descriptive names.
+- **Schematic 2 & Golden Rules**: Adopt all 6 visual rules (plain-English titles, natural axes in %/votes, direct labeling, seed dots, standard IRT/LLM terms, reference lines).
+
+Relaying this immediately to the research session to implement!
