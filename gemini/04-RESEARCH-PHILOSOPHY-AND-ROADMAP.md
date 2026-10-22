@@ -55,16 +55,21 @@ This document consolidates the user's intellectual North Star, strict anti-hype 
   4. **Pillar 3 — From Single-Scalar Readouts to Multi-Draw Distributions & RL Training (`T9` + `S1` + `W1/Q1` + `Theory R/S` + `M1` Teaser)**:
      - **What Single-Draw Eval Misses (`T9` + `S1`)**: On greedy eval (`T9`), `100%` of SFT's `+5.01` pt MMLU gain is format repair (`gain_parsed = -0.55` pts vs GRPO `+2.51` pts). Under $K=32$ sampling (`S1`), GRPO wins `mean@16` (`0.479 vs 0.439`) by collapsing within-item entropy (`0.956 -> 0.287` nats, dropping `Pass@16` from `0.869 -> 0.673`), while SFT preserves diversity (`H = 0.938`, `Pass@16 = 0.901`) and overtakes GRPO on **`maj@16` (`0.504 vs 0.481` strict, `0.555 vs 0.490` tie=key)**.
      - **Why Static 2PL Critics Fail in RL (`W1` + `Q1` + `Theory R2`)**: In $G=5$ GRPO, **`35.0%`** (UMVUE) of prompt groups have zero reward variance (`W1`), and 83%–107% of gain finishes by step 83 (`Q1`). Replacing the group baseline with static $\hat{p}_j$ under $1/L(y)$ normalization introduces a non-zero length bias $-\hat{p}_j\nabla\mathbb{E}[1/L_j]$ (`R2/M1`), and even with $L_0$ fixed (`Q1`), static $G=1$ critics (`ctt, pop0, pop1`) tie `grpo` (`0.469–0.475`) while `pop0` worsens mode collapse (`stable_12` `+0.076`).
-     - **Appetizer Hook for Nov 20 (`Unit M1`)**: Previews the active `SFT -> RL` bridge experiment (`M1a/b`) testing whether RL on top of SFT harvests SFT's `Pass@16 = 0.90` ceiling or destroys it via entropy collapse.
+     - **Appetizer Hook & Breakout Results (`Row R1` + `Unit M1` + `Row R2`)**:
+       - **`Row R1` (CPU, 1–2 days)**: Fits the key-contrast $(\tau_s, \delta_s, \kappa_{sj})$ and nested option-level models (`N0–N4`) on `S1`, `Q1`, and `T9r` (`74` states total: `7 S1 + 12 Q1 + 55 T9r`), testing `P1` (item-level change beyond location & gain), `P4` (one gain across token-0 and $K=32$ CoT), `P9` (keyed margin sign law), `P10` (order overdispersion), `P11` (`pass@k` from 2 person parameters), `S2` (modal-option invariance of GRPO), `S4` (reliability-disattenuated SFT rank correlation), and `EQ` (equal-accuracy `Q1` arm comparison).
+       - **`Unit M1` + `Row R2` (Running on Slurm)**: Tests `M1a` (`t9_sft_0..2_70` at decoding $T=0.2$, `3` states), `M1b` (`t9_sft_0..2_70 -> GRPO` at `u83` and `u333`, `6` states), and `M1c` (`t9_sft_0..2_70 -> pass-rate [2..6/8] GRPO` on `6,286–6,529` prompts at `u83` and `u333`, `6` states), evaluated under both `M1` Rules 1–3 and `R2` Predictions `P5, P6, A1, A2, A3`.
 
 ---
 
 ### Tier 2: Nov 20, 2026 — 40th IRT Workshop ("The Main Course")
 - **Locked Title**: *"Evaluating and Training Large Language Models: What Can Item Parameters Tell Us?"*
 - **Deliverables**:
-  1. Complete `Unit M1` results (`M1a` temperature sweep, `M1_W1` SFT pass rates, `M1b` `SFT -> RL` bridge campaign across `sft_grpo, sft_ctt, sft_pop0, sft_pop1`).
-  2. If `Q2-B` (where $\hat{\theta}$ separates models more sharply than accuracy) is to carry a confirmed positive evaluation claim, run the exact 1-unit unseen test specified by Claude in [`report-q1q2.md:101`](file:///C:/Users/steph/.gemini/antigravity-cli/brain/d00b65ad-c24f-4025-8dd4-1c0acb407e49/scratch/item-params-llm/results/report-q1q2.md#L101): **evaluate `Q2-B` on unseen checkpoints chosen to differ by design (e.g., spread across a training trajectory)**.
-  3. Clean leave-one-item-out / split-half fix of `signature/U2` (`src/signature/u2.py`) if causal Jacobian steering is included, eliminating the in-sample $N_j$ overlap (`01-PROVENANCE-AND-SELF-AUDIT.md §3.2`).
+  1. Complete `Unit M1` (`M1a, M1b, M1c`, `15` new sampled states) + `Row R1` & `Row R2` person-slope and option-level decomposition.
+  2. **`Rows R3, R4, R6, R7` (`plan-within-run.md`)**:
+     - `R3`: Gain $\tau_s$ as final RMSNorm weight scale (`P2, P3`) and SFT trace typicality (`P12` on the `8,538` SFT traces).
+     - `R4`: Within-run discrimination as trajectory derivative $\tilde{a}_j = J_j u_\perp$ (`P7, P8, C2, C3`).
+     - `R6`: Offline KT-IRT person-state tracker $(\delta_t, \tau_t, \eta_t)$ trained on the 12 `Q1` reward logs (`predictions_rank=*.jsonl`).
+     - `R7`: Primary-source literature verification (`Ferrando 2019`, `Cui et al. 2025`, `Yue et al. 2025`, `Huang et al. 2024`, `Duan 2026`).
 
 ---
 

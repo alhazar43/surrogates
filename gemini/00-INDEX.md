@@ -16,7 +16,7 @@
 | **[`05-OCT26-FLATTENED-STORYLINE-AND-BREAKOUT-EXPERIMENTS.md`](file:///D:/surrogates/gemini/05-OCT26-FLATTENED-STORYLINE-AND-BREAKOUT-EXPERIMENTS.md)** | **Oct 26 Flattened Storyline & 3 Win-Win Breakout Experiments**: Honest diagnosis of trivial vs. non-trivial points, the flattened 4-act narrative across `item-params-llm + signature + irt4llm`, and 3 win-win breakout experiments (`Exp 1: Unit M1`, `Exp 2: Q1-Gate 83-step shutoff gate`, `Exp 3: Rank-Invariance Spectrum`). |
 | **[`OCT26-SLIDE-PLAN.md`](file:///D:/surrogates/gemini/OCT26-SLIDE-PLAN.md)** | Oct 26 slide-by-slide plan and 5 figures (`gemini/make_oct26_figures.py` $\to$ `gemini/figures/Fig01..05.png`). |
 | **[`review-oct26-slide-plan.md`](file:///D:/surrogates/gemini/review-oct26-slide-plan.md)** | Claude (`CC-bot`)'s authoritative 69-item fact-check of Gemini's earlier v4.0 slide plan (21 `wrong`, 16 `no source`, 12 `withdrawn/narrowed`, 20 `holds`). Kept untouched as a permanent verification benchmark. |
-| **[`M1.md`](file:///D:/surrogates/gemini/M1.md)** | Active pre-registered experimental specification for `Unit M1` (`M1a` temperature sweep, `M1_W1` SFT pass rates, `M1b` `SFT -> RL` bridge campaign) running on the Slurm cluster. |
+| **[`M1.md`](file:///D:/surrogates/gemini/M1.md)** | Active pre-registered experimental specification for `Unit M1` (`M1a` token temperature $T=0.2$ on `t9_sft_0..2_70`; `M1b` `t9_sft_0..2_70 -> GRPO` 333 updates with save at 83; `M1c` `t9_sft_0..2_70 -> pass-rate [2..6/8] GRPO` 333 updates with save at 83) running on the Slurm cluster. |
 
 ---
 
