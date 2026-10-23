@@ -480,6 +480,145 @@ def make_fig4_v2_irt_item_slope():
 
 
 # ==============================================================================
+# FIGURE 4 v3: Full-Point Fit Directly on IRT Difficulty b_j (1,472 Items)
+# ==============================================================================
+def make_fig4_v3_b_fullpoint_fit():
+    w0 = pd.read_csv(os.path.join(RESULTS, "W0", "items_bank.csv"))
+    w0_ok = w0[w0["match_status"] == "matched"].copy()
+    t9 = pd.read_csv(os.path.join(RESULTS, "T9r", "items_wide.csv")).set_index("item_id").loc[w0_ok["bank_row_id"]]
+
+    w0_ok["dp_sft"] = t9[["dp_key_sft_0_70", "dp_key_sft_1_70", "dp_key_sft_2_70"]].mean(axis=1).values * 100.0
+    w0_ok["dp_grpo"] = t9[["dp_key_rl_0_666", "dp_key_rl_1_666", "dp_key_rl_2_666"]].mean(axis=1).values * 100.0
+
+    b = w0_ok["b"].to_numpy()
+    dp_g = w0_ok["dp_grpo"].to_numpy()
+    dp_s = w0_ok["dp_sft"].to_numpy()
+
+    # 10 Decile bins
+    w0_ok["b_bin"] = pd.qcut(w0_ok["b"], q=10)
+    binned = w0_ok.groupby("b_bin", observed=False)[["a", "b", "dp_sft", "dp_grpo"]].mean()
+    b_grid = binned["b"].to_numpy()
+    sizes_bin = binned["a"].to_numpy() * 110.0
+
+    # Dense grid for evaluation on b_j
+    b_dense = np.linspace(-2.5, 5.0, 300)
+
+    # Linear fits directly on all 1,472 raw points
+    m_g, c_g = np.polyfit(b, dp_g, 1)
+    m_s, c_s = np.polyfit(b, dp_s, 1)
+    r2_lin_g = 1.0 - np.sum((dp_g - (m_g * b + c_g)) ** 2) / np.sum((dp_g - np.mean(dp_g)) ** 2)
+    r2_lin_s = 1.0 - np.sum((dp_s - (m_s * b + c_s)) ** 2) / np.sum((dp_s - np.mean(dp_s)) ** 2)
+
+    # Smooth cubic fits directly on all 1,472 raw points
+    p3_g = np.poly1d(np.polyfit(b, dp_g, 3))
+    p3_s = np.poly1d(np.polyfit(b, dp_s, 3))
+    r2_p3_g = 1.0 - np.sum((dp_g - p3_g(b)) ** 2) / np.sum((dp_g - np.mean(dp_g)) ** 2)
+    r2_p3_s = 1.0 - np.sum((dp_s - p3_s(b)) ** 2) / np.sum((dp_s - np.mean(dp_s)) ** 2)
+
+    fig, ax = plt.subplots(1, 1, figsize=(8.0, 5.3))
+    ax.axhline(0, color="#64748B", linestyle="--", linewidth=1.4)
+
+    # 1,472 raw individual items background scatter
+    ax.scatter(b, dp_g, s=w0_ok["a"] * 18.0, color="#DC2626", alpha=0.15, edgecolors="none", zorder=2)
+    ax.scatter(b, dp_s, s=w0_ok["a"] * 18.0, color="#0284C7", alpha=0.15, edgecolors="none", zorder=2)
+
+    # 10 decile binned markers
+    ax.scatter(b_grid, binned["dp_grpo"], s=sizes_bin, color="#DC2626", marker="s", zorder=5, edgecolors="#7F1D1D", linewidth=1.2,
+               label="GRPO 10 Deciles")
+    ax.scatter(b_grid, binned["dp_sft"], s=sizes_bin, color="#0284C7", marker="o", zorder=5, edgecolors="#0369A1", linewidth=1.2,
+               label="CoT SFT 10 Deciles")
+
+    # Smooth & linear fit curves
+    ax.plot(b_dense, p3_g(b_dense), "-", color="#DC2626", linewidth=2.8, zorder=6,
+            label=f"GRPO Smooth Fit (R\u00b2 = {r2_p3_g:.3f})")
+    ax.plot(b_dense, m_g * b_dense + c_g, "--", color="#991B1B", linewidth=1.8, zorder=6,
+            label=f"GRPO Linear Fit (slope = {m_g:.2f}, R\u00b2 = {r2_lin_g:.3f})")
+
+    ax.plot(b_dense, p3_s(b_dense), "-", color="#0284C7", linewidth=2.8, zorder=6,
+            label=f"CoT SFT Smooth Fit (R\u00b2 = {r2_p3_s:.3f})")
+    ax.plot(b_dense, m_s * b_dense + c_s, "--", color="#0369A1", linewidth=1.8, zorder=6,
+            label=f"CoT SFT Linear Fit (slope = +{m_s:.2f}, R\u00b2 = {r2_lin_s:.3f})")
+
+    ax.set_title("Full-Point Fit Directly on IRT Difficulty b_j (1,472 MMLU Items)", pad=10)
+    ax.set_xlabel("IRT Item Difficulty b_j (10 Deciles: Easy \u2192 Hard)")
+    ax.set_ylabel("Item Pass-Rate Change: \u0394p_j (% pts) (\u2191)")
+    ax.set_xlim(-2.5, 5.0)
+    ax.set_ylim(-25, 25)
+    ax.legend(loc="lower right", frameon=True, facecolor="white", framealpha=0.93, fontsize=8.4)
+    ax.grid(True, linestyle=":", alpha=0.4)
+
+    save_fig(fig, "Fig04_v3_b_fullpoint_fit.png")
+
+
+# ==============================================================================
+# FIGURE 4 v4: True Within-Run S-Curve on Base Log-Odds mu_0j = logit(p_base,j)
+# ==============================================================================
+def make_fig4_v4_base_logit_scurve():
+    w0 = pd.read_csv(os.path.join(RESULTS, "W0", "items_bank.csv"))
+    w0_ok = w0[w0["match_status"] == "matched"].copy()
+    t9 = pd.read_csv(os.path.join(RESULTS, "T9r", "items_wide.csv")).set_index("item_id").loc[w0_ok["bank_row_id"]]
+
+    w0_ok["p_base"] = np.clip(t9["p_key_base"].values, 1e-4, 1 - 1e-4)
+    w0_ok["L_base"] = logit(w0_ok["p_base"])
+    w0_ok["dp_sft"] = t9[["dp_key_sft_0_70", "dp_key_sft_1_70", "dp_key_sft_2_70"]].mean(axis=1).values * 100.0
+    w0_ok["dp_grpo"] = t9[["dp_key_rl_0_666", "dp_key_rl_1_666", "dp_key_rl_2_666"]].mean(axis=1).values * 100.0
+
+    p0 = w0_ok["p_base"].values
+    L0 = w0_ok["L_base"].values
+    p_g = np.clip(p0 + w0_ok["dp_grpo"].values / 100.0, 1e-4, 1 - 1e-4)
+    p_s = np.clip(p0 + w0_ok["dp_sft"].values / 100.0, 1e-4, 1 - 1e-4)
+
+    res_g = minimize(lambda x: np.mean((p_g - expit(x[0] * L0 + x[1])) ** 2), [1.8, 0.0])
+    res_s = minimize(lambda x: np.mean((p_s - expit(x[0] * L0 + x[1])) ** 2), [0.5, 0.0])
+
+    w0_ok["L_bin"] = pd.qcut(w0_ok["L_base"], q=10)
+    binned_L = w0_ok.groupby("L_bin", observed=False)[["a", "L_base", "dp_sft", "dp_grpo"]].mean()
+    sizes_bin = binned_L["a"].to_numpy() * 110.0
+
+    L_grid = np.linspace(-4.5, 3.5, 400)
+    pred_grpo_curve = (expit(res_g.x[0] * L_grid + res_g.x[1]) - expit(L_grid)) * 100.0
+    pred_sft_curve = (expit(res_s.x[0] * L_grid + res_s.x[1]) - expit(L_grid)) * 100.0
+
+    fig, ax = plt.subplots(1, 1, figsize=(8.0, 5.4))
+    ax.axhline(0, color="#64748B", linestyle="--", linewidth=1.4)
+
+    # 1,472 raw items background scatter
+    ax.scatter(w0_ok["L_base"], w0_ok["dp_grpo"], s=w0_ok["a"] * 18.0, color="#DC2626", alpha=0.16, edgecolors="none", zorder=2)
+    ax.scatter(w0_ok["L_base"], w0_ok["dp_sft"], s=w0_ok["a"] * 18.0, color="#0284C7", alpha=0.16, edgecolors="none", zorder=2)
+
+    # 10 deciles along L_base
+    ax.scatter(binned_L["L_base"], binned_L["dp_grpo"], s=sizes_bin, color="#DC2626", marker="s", zorder=5, edgecolors="#7F1D1D", linewidth=1.2,
+               label="GRPO 10 Deciles along \u03bc_0")
+    ax.scatter(binned_L["L_base"], binned_L["dp_sft"], s=sizes_bin, color="#0284C7", marker="o", zorder=5, edgecolors="#0369A1", linewidth=1.2,
+               label="CoT SFT 10 Deciles along \u03bc_0")
+
+    # Continuous analytical S-curves
+    ax.plot(L_grid, pred_grpo_curve, "-", color="#DC2626", linewidth=2.8, zorder=6,
+            label=f"GRPO Analytical S-Curve (\u03c4 = {res_g.x[0]:.2f} > 1)")
+    ax.plot(L_grid, pred_sft_curve, "-", color="#0284C7", linewidth=2.8, zorder=6,
+            label=f"CoT SFT Analytical S-Curve (\u03c4 = {res_s.x[0]:.2f} < 1)")
+
+    ax.set_title("Item Pass-Rate Change vs. Base Model Initial Log-Odds \u03bc_0j (1,472 Items)", pad=12)
+    ax.set_xlabel("Base Model Initial Log-Odds \u03bc_0j = logit(p_base,j) (Hard \u2192 Easy)")
+    ax.set_ylabel("Item Pass-Rate Change: \u0394p_j (% pts) (\u2191)")
+    ax.set_xlim(-4.5, 3.5)
+    ax.set_ylim(-30, 35)
+    ax.legend(loc="lower left", frameon=True, facecolor="white", framealpha=0.93, fontsize=8.8)
+    ax.grid(True, linestyle=":", alpha=0.4)
+
+    # Secondary top axis showing probability p_base
+    ax2 = ax.twiny()
+    p_ticks = np.array([0.05, 0.10, 0.25, 0.50, 0.75, 0.90])
+    logit_ticks = logit(p_ticks)
+    ax2.set_xlim(ax.get_xlim())
+    ax2.set_xticks(logit_ticks)
+    ax2.set_xticklabels(["5%", "10%", "25%", "50%", "75%", "90%"])
+    ax2.set_xlabel("Base Model Probability p_base = \u03c3(\u03bc_0j)", fontsize=10.0, fontweight="bold", labelpad=6)
+
+    save_fig(fig, "Fig04_v4_base_logit_scurve.png")
+
+
+# ==============================================================================
 # FIGURE 5 (Unit Q1, 2 Coupled Panels on the Exact Same 4 RL Runs):
 #   Online RL Training With Static 2PL Critics on MMLU
 # ==============================================================================
@@ -549,5 +688,7 @@ if __name__ == "__main__":
     make_fig3_v2_irt_subject_separation()
     make_fig4_irt_item_slope()
     make_fig4_v2_irt_item_slope()
+    make_fig4_v3_b_fullpoint_fit()
+    make_fig4_v4_base_logit_scurve()
     make_fig5_rl_critics()
-    print("All figures (Fig00..Fig05 + Fig03_v2 + Fig04_v2) generated successfully.")
+    print("All figures (Fig00..Fig05 + v2/v3/v4 variants) generated successfully.")
