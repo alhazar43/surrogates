@@ -303,49 +303,69 @@ def make_fig3_irt_subject_separation():
 def make_fig3_v2_irt_subject_separation():
     w0 = pd.read_csv(os.path.join(RESULTS, "W0", "items_bank.csv"))
     w0_ok = w0[w0["match_status"] == "matched"].copy()
-    t9 = pd.read_csv(os.path.join(RESULTS, "T9r", "items_wide.csv")).set_index("item_id").loc[w0_ok["bank_row_id"]]
+    it10 = pd.read_csv(os.path.join(SIG_RESULTS, "T10", "runs", "items.csv"))
+    flags = pd.read_csv(os.path.join(RESULTS, "Q2g", "s1", "flags.csv"))
+    pf = pd.read_csv(os.path.join(RESULTS, "Q2g", "s1", "personfit.csv")).iloc[:7]
 
-    w0_ok["dp_sft"] = t9[["dp_key_sft_0_70", "dp_key_sft_1_70", "dp_key_sft_2_70"]].mean(axis=1).values * 100.0
-    w0_ok["dp_grpo"] = t9[["dp_key_rl_0_666", "dp_key_rl_1_666", "dp_key_rl_2_666"]].mean(axis=1).values * 100.0
+    th_base = pf[pf["method"] == "base"]["theta"].mean()
+    th_sft = pf[pf["method"] == "sft"]["theta"].mean()
+    th_grpo = pf[pf["method"] == "grpo"]["theta"].mean()
 
-    sub = w0_ok.groupby("subject").agg({"b": "mean", "a": "mean", "dp_sft": "mean", "dp_grpo": "mean"}).sort_values("b")
+    a3 = flags[(flags["reading"] == "A3_subject_mean_c") & (flags["variant"] == "all") & (flags["state"] == "pooled_states")]
+    sub_a = w0_ok.groupby("subject")["a"].mean()
+    sub_b = w0_ok.groupby("subject")["b"].mean()
+    p_base_sub = it10.groupby("subject")["p_ref"].mean()
+    c_sft = a3[a3["method"] == "sft"].set_index("subject")["value"]
+    c_grpo = a3[a3["method"] == "grpo"].set_index("subject")["value"]
+    dp_sft_sub = (expit(logit(p_base_sub) + c_sft + sub_a * (th_sft - th_base)) - p_base_sub) * 100.0
+    dp_grpo_sub = (expit(logit(p_base_sub) + c_grpo + sub_a * (th_grpo - th_base)) - p_base_sub) * 100.0
 
-    fig, ax = plt.subplots(1, 1, figsize=(8.0, 5.4))
+    df_sub = pd.DataFrame({"b": sub_b, "a": sub_a, "dp_sft": dp_sft_sub, "dp_grpo": dp_grpo_sub}).sort_values("b")
+
+    # Item-level background cloud
+    it10_idx = it10.set_index("item_id").loc[w0_ok["bank_row_id"]]
+    p_base = np.clip(it10_idx["p_ref"].values, 1e-4, 1 - 1e-4)
+    L_base = logit(p_base)
+    w0_ok["c_sft"] = w0_ok["subject"].map(c_sft.to_dict())
+    w0_ok["c_grpo"] = w0_ok["subject"].map(c_grpo.to_dict())
+    w0_ok["dp_sft_item"] = (expit(L_base + w0_ok["c_sft"].values + w0_ok["a"].values * (th_sft - th_base)) - p_base) * 100.0
+    w0_ok["dp_grpo_item"] = (expit(L_base + w0_ok["c_grpo"].values + w0_ok["a"].values * (th_grpo - th_base)) - p_base) * 100.0
+
+    fig, ax = plt.subplots(1, 1, figsize=(7.8, 5.2))
     ax.axhline(0, color="#64748B", linestyle="--", linewidth=1.3)
 
-    # 1,472 background items (translucent)
-    ax.scatter(w0_ok["b"], w0_ok["dp_sft"], s=w0_ok["a"] * 16.0, color="#0284C7", alpha=0.10, edgecolors="none", zorder=2)
-    ax.scatter(w0_ok["b"], w0_ok["dp_grpo"], s=w0_ok["a"] * 16.0, color="#DC2626", alpha=0.10, edgecolors="none", zorder=2)
+    # 1,472 raw items background scatter
+    ax.scatter(w0_ok["b"], w0_ok["dp_sft_item"], s=w0_ok["a"] * 16.0, color="#0284C7", alpha=0.10, edgecolors="none", zorder=2)
+    ax.scatter(w0_ok["b"], w0_ok["dp_grpo_item"], s=w0_ok["a"] * 16.0, color="#DC2626", alpha=0.10, edgecolors="none", zorder=2)
 
-    # Subject-level bubbles (15 subjects)
-    sizes = sub["a"] * 125.0
-    ax.scatter(sub["b"], sub["dp_sft"], s=sizes, color="#0284C7", alpha=0.88, edgecolors="#0369A1", linewidth=1.2, zorder=4,
-               label="CoT SFT (wins high-b math/quant subjects)")
-    ax.scatter(sub["b"], sub["dp_grpo"], s=sizes, color="#DC2626", marker="s", alpha=0.88, edgecolors="#991B1B", linewidth=1.2, zorder=4,
-               label="GRPO (wins low-b factual subjects)")
+    # 15 Subject bubbles
+    sizes = df_sub["a"] * 100.0
+    ax.scatter(df_sub["b"], df_sub["dp_sft"], s=sizes, color="#0284C7", alpha=0.88, edgecolors="#0369A1", linewidth=1.1, zorder=4,
+               label="CoT SFT (wins 5/6 high-b, low-a math/quant subjects)")
+    ax.scatter(df_sub["b"], df_sub["dp_grpo"], s=sizes, color="#DC2626", marker="s", alpha=0.88, edgecolors="#991B1B", linewidth=1.1, zorder=4,
+               label="GRPO (wins 8/8 low-b, high-a factual subjects)")
 
-    # Linear trendlines
-    x_grid = np.linspace(sub["b"].min() - 0.15, sub["b"].max() + 0.15, 100)
-    m_sft, c_sft = np.polyfit(sub["b"], sub["dp_sft"], 1)
-    m_grpo, c_grpo = np.polyfit(sub["b"], sub["dp_grpo"], 1)
-    ax.plot(x_grid, m_sft * x_grid + c_sft, "-", color="#0284C7", linewidth=2.4, alpha=0.85, zorder=3)
-    ax.plot(x_grid, m_grpo * x_grid + c_grpo, "-", color="#DC2626", linewidth=2.4, alpha=0.85, zorder=3)
+    x_grid = np.linspace(df_sub["b"].min() - 0.12, df_sub["b"].max() + 0.12, 100)
+    m_sft, c_sft_l = np.polyfit(df_sub["b"], df_sub["dp_sft"], 1)
+    m_grpo, c_grpo_l = np.polyfit(df_sub["b"], df_sub["dp_grpo"], 1)
+    ax.plot(x_grid, m_sft * x_grid + c_sft_l, "-", color="#0284C7", linewidth=2.2, alpha=0.85, zorder=3)
+    ax.plot(x_grid, m_grpo * x_grid + c_grpo_l, "-", color="#DC2626", linewidth=2.2, alpha=0.85, zorder=3)
 
     for subj, label, dx, dy, col in [
-        ("marketing", "Marketing (a=1.45)", 0.08, -0.6, "#991B1B"),
-        ("sociology", "Sociology (a=1.13)", 0.08, -0.8, "#991B1B"),
-        ("elementary_mathematics", "Elem. Math (a=0.43)", -0.88, -0.8, "#0369A1"),
-        ("high_school_mathematics", "HS Math (a=0.28)", -0.72, 1.2, "#0369A1"),
+        ("marketing", "Marketing (a=1.45)", 0.07, -0.5, "#991B1B"),
+        ("sociology", "Sociology (a=1.28)", 0.07, -0.8, "#991B1B"),
+        ("elementary_mathematics", "Elem. Math (a=0.45)", -0.85, -0.8, "#0369A1"),
+        ("high_school_mathematics", "HS Math (a=0.28)", -0.72, 1.8, "#0369A1"),
     ]:
-        r = sub.loc[subj]
+        r = df_sub.loc[subj]
         col_y = "dp_grpo" if col == "#991B1B" else "dp_sft"
         ax.text(r["b"] + dx, r[col_y] + dy, label, fontsize=9.2, color=col, fontweight="bold", zorder=5)
 
-    ax.set_title("IRT (a_m, b_m) Separates SFT vs. GRPO Across 15 Subjects & 1,472 Items (r = +0.95)", pad=10)
+    ax.set_title("IRT (a_m, b_m) Separates SFT vs. GRPO Across 15 Subjects & 1,472 Items (r = +0.85)", pad=10)
     ax.set_xlabel("Subject Mean IRT Difficulty b_m (Easy \u2192 Hard)")
-    ax.set_ylabel("Item Pass-Rate Change: \u0394p (% pts) (\u2191)")
-    ax.set_xlim(-1.3, 2.7)
-    ax.set_ylim(-32, 24)
+    ax.set_ylabel("Pass-Rate Change Over Base: \u0394Mean@16 (% pts) (\u2191)")
+    ax.set_xlim(-1.15, 2.55)
+    ax.set_ylim(-14, 44)
     ax.legend(loc="lower left", frameon=True, facecolor="white", framealpha=0.93, fontsize=9.0)
     ax.grid(True, linestyle=":", alpha=0.4)
 
@@ -433,14 +453,14 @@ def make_fig4_v2_irt_item_slope():
     ax.axhline(0, color="#64748B", linestyle="--", linewidth=1.4)
 
     # 1,472 raw individual items background scatter
-    ax.scatter(w0_ok["b"], w0_ok["dp_grpo"], s=w0_ok["a"] * 18.0, color="#DC2626", alpha=0.15, edgecolors="none", zorder=2)
-    ax.scatter(w0_ok["b"], w0_ok["dp_sft"], s=w0_ok["a"] * 18.0, color="#0284C7", alpha=0.15, edgecolors="none", zorder=2)
+    ax.scatter(w0_ok["b"], w0_ok["dp_grpo"], s=w0_ok["a"] * 18.0, color="#DC2626", alpha=0.14, edgecolors="none", zorder=2)
+    ax.scatter(w0_ok["b"], w0_ok["dp_sft"], s=w0_ok["a"] * 18.0, color="#0284C7", alpha=0.14, edgecolors="none", zorder=2)
 
     # 10 decile binned markers
     ax.scatter(b_grid, binned["dp_grpo"], s=sizes_bin, color="#DC2626", marker="s", zorder=5, edgecolors="#7F1D1D", linewidth=1.2,
-               label="GRPO 10 Deciles (bubble size ~ mean discrimination a_bin)")
+               label="GRPO 10 Deciles")
     ax.scatter(b_grid, binned["dp_sft"], s=sizes_bin, color="#0284C7", marker="o", zorder=5, edgecolors="#0369A1", linewidth=1.2,
-               label="CoT SFT 10 Deciles (bubble size ~ mean discrimination a_bin)")
+               label="CoT SFT 10 Deciles")
 
     # Continuous fitted curves
     ax.plot(b_grid, binned["pred_dp_grpo"], "-", color="#DC2626", linewidth=2.8, zorder=6,
@@ -451,7 +471,8 @@ def make_fig4_v2_irt_item_slope():
     ax.set_title("Item-Level Pass-Rate Change vs. IRT (a_j, b_j) Across 10 Deciles & 1,472 Items", pad=10)
     ax.set_xlabel("IRT Item Difficulty b_j (10 Equal-Size Deciles: Easy \u2192 Hard)")
     ax.set_ylabel("Item Pass-Rate Change: \u0394p_j (% pts) (\u2191)")
-    ax.set_ylim(-35, 30)
+    ax.set_xlim(-2.5, 5.0)
+    ax.set_ylim(-22, 22)
     ax.legend(loc="lower right", frameon=True, facecolor="white", framealpha=0.93, fontsize=8.8)
     ax.grid(True, linestyle=":", alpha=0.4)
 
