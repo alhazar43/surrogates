@@ -783,13 +783,14 @@ def make_fig5_rl_critics():
             ax2.scatter(np.full(3, x[i] + offsets[idx]), seed_vals, s=20, color="#0F172A", alpha=0.75, zorder=5)
             ax2.text(x[i] + offsets[idx], float(np.max(seed_vals)) + 1.1, f"{means[i]:.1f}", ha="center", fontsize=8.0, fontweight="bold", color="#1E293B")
 
-    # EQ Latent Divergence Card (Unit R1c Audited, b4398d3)
+    # EQ Item Structure Card (Unit R1c Audited, b4398d3)
     eq_card = (
-        "EQ Latent Divergence (Unit R1c Audited, b4398d3):\n"
+        "EQ: item structure detected in 5 of 6 arm pairs (b4398d3):\n"
         "\u2022 Equal Aggregate Mean@16: Critic arms match GRPO (~46.7%).\n"
-        "\u2022 Item Structure Detected: EQ identifies item-level divergence in 5 of 6\n"
-        "  equal-accuracy arm pairs (R_both = 0.195\u20130.370 > null threshold 0.1397).\n"
-        "\u2022 Pop0 vs Pop1 not detected (0.133). Equal test-score models learn distinct items!"
+        "\u2022 Structure Detected: EQ detects item structure in 5 of 6 arm pairs\n"
+        "  (R_both = 0.195\u20130.370 > threshold 0.1397; pop0 vs pop1 not detected at 0.133).\n"
+        "\u2022 Caveats: (1) with 2 orders, part may be symmetric item-by-letter effect;\n"
+        "  (2) EQ has zero power at planted size (not detected \u2260 absent)."
     )
     ax2.text(0.68, 0.965, eq_card, transform=ax2.transAxes, ha="center", va="top",
              fontsize=7.2, fontweight="bold", color="#0F172A",
@@ -845,8 +846,9 @@ def make_fig6_r1a_extra_products():
     # Annotation box for S-1, S-6, and completed P1c nulls + R1c 3-seed resolution
     anno_text = (
         "Unit R1a + R1c Audited (b4398d3): Residuals repeat beyond all nulls tested.\n"
-        "\u2022 P4 Fails in 3/3 Seeds: GRPO sampled slope (4.53, 5.04, 3.79) sharpens 2.35,\n"
-        "  2.60, 1.72 above token-0 reads (\u03c4_0 ~ 1.9\u20132.2), rejecting single-mode gain (P4 \u2264 0.15).\n"
+        "\u2022 P4 fails in 3 of 3 seeds: With order term, GRPO slopes (4.53, 4.79, 3.92)\n"
+        "  sharpen 2.35, 2.60, 1.72 above token-0 reads (\u03c4_0 ~ 2.2 vs P4 \u2264 0.15 rule).\n"
+        "  Caveat: chat template differs between reads (5816fce1 vs f6528967).\n"
         "\u2022 Shared misfit: Cubic base-logit (\u03bb\u00b3) explains only 0.1%\u20130.5% of residual variance."
     )
     ax1.text(0.5, 0.94, anno_text, transform=ax1.transAxes, ha="center", va="top", fontsize=7.2, color="#1E293B",
@@ -1108,11 +1110,11 @@ def make_fig7_m1_interventions():
     ax3.plot([x_c[3], x_c[3], x_c[4], x_c[4]], [y_p5_333 - 0.02, y_p5_333, y_p5_333, y_p5_333 - 0.02], color="#B45309", lw=1.1, zorder=5)
     ax3.text((x_c[3] + x_c[4]) / 2.0, y_p5_333 + 0.025, "P5: +0.033 (3/3 seeds)\nmean d \u2265 \u22122 SE", ha="center", fontsize=6.8, fontweight="bold", color="#78350F")
 
-    # Annotations on M1a Zero-Train slope
+    # Annotations on M1a Zero-Train slope (polished: arrow points cleanly to bar shoulder)
     ax3.annotate(
         "A2: Pure Inference Sharpening\n\u03c4 = 1.664 (3/3 seeds > 1.61)\nN2 loglik +24.4, \u03b4 = \u22120.17",
-        xy=(x_c[5], 1.73),
-        xytext=(x_c[5] - 0.45, 1.84),
+        xy=(x_c[5] - 0.22, 1.664),
+        xytext=(x_c[5] - 0.85, 1.82),
         ha="center",
         fontsize=6.8,
         fontweight="bold",
@@ -1122,15 +1124,16 @@ def make_fig7_m1_interventions():
         zorder=6
     )
 
-    # Note comparing M1 controlled slopes vs Standalone GRPO
+    # Note comparing M1 controlled slopes vs Standalone GRPO & A3 N1 vs N2
     note_grpo = (
-        "Controlled Slopes: \u03c4 in [1.07, 1.29]\n"
-        "(vs. Standalone GRPO from Base \u03c4 \u2248 4.14)\n"
-        "A3: \u03ba Branch +1 in 3/3 seeds at u83 & u333"
+        "Controlled Slopes: \u03c4 in [1.07, 1.29] (vs. GRPO from Base \u03c4 \u2248 4.14)\n"
+        "A3 Person Slope (Band sharpens all items more):\n"
+        "  \u2022 N2: Branch +1 in 3/3 seeds at u83 (+0.029) & u333 (+0.040)\n"
+        "  \u2022 N1: Branch +1 at u83 (+0.035), but Branch 0 at u333 (0.033)"
     )
     ax3.text(
-        0.55, 1.58, note_grpo,
-        fontsize=6.8, fontweight="bold", color="#4C1D95",
+        0.55, 1.56, note_grpo,
+        fontsize=6.6, fontweight="bold", color="#4C1D95",
         bbox=dict(boxstyle="round,pad=0.25", facecolor="#F5F3FF", edgecolor="#A78BFA", alpha=0.95, linewidth=0.7),
         zorder=5
     )
@@ -1138,7 +1141,7 @@ def make_fig7_m1_interventions():
     # Top Annotation Box in Panel C
     anno_c = (
         "P5 Holds (3/3 seeds at u83 & u333): Band raises slope \u03c4 even where raw Mean@16 ties (46.5% vs 46.7%).\n"
-        "A3 Holds (+1 on \u03ba in 3/3 seeds): within-run slope significantly higher under band (u83 +0.029, u333 +0.040).\n"
+        "A3 Person Slope: Band sharpens all items more; N2: +1 at u83 (+0.029) & u333 (+0.040); N1: +1 at u83, 0 at u333.\n"
         "P6 Holds (11/11 read rows): E[c_5 \u0394_j] > 0 strictly predicts positive slope gain (log \u03c4 > 0); A1/A2 modes kept."
     )
     ax3.text(0.5, 0.965, anno_c, transform=ax3.transAxes, ha="center", va="top", fontsize=7.2, color="#0F172A",
