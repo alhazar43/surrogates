@@ -820,14 +820,13 @@ def make_fig6_r1a_extra_products():
     ax1.text(x_a[0], 0.618, "r = 0.603***", ha="center", fontsize=9.2, fontweight="bold", color="#991B1B")
     ax1.text(x_a[1], 0.750, "Mean r = 0.731***", ha="center", fontsize=9.2, fontweight="bold", color="#0369A1")
 
-    # Annotation box for S-1 and S-6
+    # Annotation box for S-1, S-6, and completed P1c nulls
     anno_text = (
-        "Both SFT (+6.0% to +8.3% modal flips toward key) and GRPO repeat beyond the\n"
-        "nulls tested so far after removing common (\u03c4_s, \u03b4_s).\n"
-        "S-6 Caveat: Seeds share 1 start model; 2 additional P1c nulls queued\n"
-        "(SFT at fitted values & shared non-linear base misfit)."
+        "Both SFT (+6.0% to +8.3% modal flips) and GRPO repeat beyond nulls tested.\n"
+        "P1c Null Tests Passed: Repeats beyond independent, shared-step, & half-shared nulls;\n"
+        "a cubic base-logit misfit (\u03bb\u00b3) explains only 0.1%\u20130.5% of real residual variance."
     )
-    ax1.text(0.5, 0.93, anno_text, ha="center", va="center", fontsize=7.6, color="#1E293B",
+    ax1.text(0.5, 0.94, anno_text, ha="center", va="center", fontsize=7.4, color="#1E293B",
              bbox=dict(boxstyle="round,pad=0.35", facecolor="#F8FAFC", edgecolor="#94A3B8", alpha=0.95, linewidth=0.8), zorder=6)
 
     ax1.set_xticks(x_a)
