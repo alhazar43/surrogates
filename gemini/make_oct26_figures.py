@@ -684,6 +684,11 @@ def make_fig4_v5_stacked_b_vs_base():
 
     # ==================== Panel B (Bottom) ====================
     ax2.axhline(0, color="#64748B", linestyle="--", linewidth=1.3)
+
+    # Shading and vertical dashed line at logit(0.25)
+    ax2.axvspan(-1.0986, -4.5, color="#FEE2E2", alpha=0.22, zorder=1)
+    ax2.axvline(-1.0986, color="#DC2626", linestyle=":", linewidth=1.5, alpha=0.8, zorder=3)
+
     ax2.scatter(w0_ok["L_base"], dp_g, s=w0_ok["a"] * 18.0, color="#DC2626", alpha=0.15, edgecolors="none", zorder=2)
     ax2.scatter(w0_ok["L_base"], dp_s, s=w0_ok["a"] * 18.0, color="#0284C7", alpha=0.15, edgecolors="none", zorder=2)
     ax2.scatter(binned_L["L_base"], binned_L["dp_grpo"], s=binned_L["a"] * 110.0, color="#DC2626", marker="s", zorder=5, edgecolors="#7F1D1D", linewidth=1.2, label="GRPO 10 Deciles along \u03bc_0")
@@ -695,12 +700,17 @@ def make_fig4_v5_stacked_b_vs_base():
     ax2.plot(L_grid, pred_grpo_curve, "-", color="#DC2626", linewidth=2.8, zorder=6, label=f"GRPO Analytical S-Curve (\u03c4 = {res_g.x[0]:.2f} > 1)")
     ax2.plot(L_grid, pred_sft_curve, "-", color="#0284C7", linewidth=2.8, zorder=6, label=f"CoT SFT Analytical S-Curve (\u03c4 = {res_s.x[0]:.2f} < 1)")
 
+    # Actionable RL prescription annotation
+    ax2.text(-2.8, -17.0, "p_base < 25% (0/8 & 1/8 draws):\nGRPO sharpening hurts (\u0394p < 0)\n\u2192 M1c filters out this zone",
+             ha="center", fontsize=8.0, color="#991B1B", fontweight="bold",
+             bbox=dict(boxstyle="round,pad=0.35", facecolor="#FEF2F2", edgecolor="#F87171", alpha=0.92, linewidth=0.8), zorder=7)
+
     ax2.set_title("(B) Within-Model Initial Log-Odds \u03bc_0j = logit(p_base,j) (Easy \u2192 Hard)", pad=8)
     ax2.set_xlabel("Base Model Initial Log-Odds \u03bc_0j = logit(p_base,j) (Easy \u2192 Hard)")
     ax2.set_ylabel("Pass-Rate Change: \u0394p_j (% pts) (\u2191)")
     ax2.set_xlim(3.5, -4.5)
     ax2.set_ylim(-28, 32)
-    ax2.legend(loc="lower right", frameon=True, facecolor="white", framealpha=0.93, fontsize=8.2)
+    ax2.legend(loc="lower left", frameon=True, facecolor="white", framealpha=0.93, fontsize=8.0)
     ax2.grid(True, linestyle=":", alpha=0.4)
 
     ax2_top = ax2.twiny()
@@ -775,6 +785,95 @@ def make_fig5_rl_critics():
     save_fig(fig, "Fig05_rl_critics_q1.png")
 
 
+# ==============================================================================
+# FIGURE 6 (Unit R1a Audited — Extra Products: Repeatable Learning & Order Bias):
+#   Rows 4, 5, 6, 21 from JOINT-CLAIMS-LIST.md
+# ==============================================================================
+def make_fig6_r1a_extra_products():
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12.2, 4.8))
+    fig.subplots_adjust(wspace=0.28)
+
+    # ==================== Panel A ====================
+    categories_a = [
+        "Naive 1D IRT\n(Q2-A)",
+        "GRPO IRT Residual\n\u03ba_sj (Row 21)",
+        "CoT SFT IRT Residual\n\u03ba_sj (Row 5)",
+    ]
+    x_a = np.arange(len(categories_a))
+    vals_a = [0.009, 0.603, 0.731]
+    colors_a = ["#94A3B8", "#DC2626", "#0284C7"]
+    edge_a = ["#475569", "#991B1B", "#0369A1"]
+
+    ax1.bar(x_a, vals_a, width=0.52, color=colors_a, edgecolor=edge_a, linewidth=1.1, alpha=0.88, zorder=3)
+
+    # GRPO null 97.5% = 0.112
+    ax1.hlines(0.112, x_a[1] - 0.30, x_a[1] + 0.30, color="#7F1D1D", linestyle="--", linewidth=1.8, zorder=4)
+    ax1.text(x_a[1], 0.125, "Null 97.5%: 0.112", ha="center", fontsize=8.0, fontweight="bold", color="#7F1D1D")
+
+    # SFT null 97.5% = 0.195
+    ax1.hlines(0.195, x_a[2] - 0.30, x_a[2] + 0.30, color="#0C4A6E", linestyle="--", linewidth=1.8, zorder=4)
+    ax1.text(x_a[2], 0.208, "Null 97.5%: 0.195", ha="center", fontsize=8.0, fontweight="bold", color="#0C4A6E")
+
+    # SFT individual seed pairs: 0.727, 0.732, 0.735
+    ax1.scatter([x_a[2]] * 3, [0.727, 0.732, 0.735], color="#0C4A6E", s=28, zorder=5)
+
+    # Value text labels on bars
+    ax1.text(x_a[0], 0.025, "r = +0.009\n(no lift)", ha="center", fontsize=8.5, fontweight="bold", color="#1E293B")
+    ax1.text(x_a[1], 0.615, "r = 0.603***", ha="center", fontsize=9.2, fontweight="bold", color="#991B1B")
+    ax1.text(x_a[2], 0.745, "r = 0.731***", ha="center", fontsize=9.2, fontweight="bold", color="#0369A1")
+
+    # SFT modal key flips annotation
+    ax1.text(x_a[2], 0.44, "+6.0% to +8.3%\nModal-Key Flips\n(Row 6)", ha="center", fontsize=8.2, color="#0C4A6E", fontweight="bold",
+             bbox=dict(boxstyle="round,pad=0.3", facecolor="#F0F9FF", edgecolor="#0284C7", alpha=0.92, linewidth=0.8), zorder=6)
+
+    ax1.set_xticks(x_a)
+    ax1.set_xticklabels(categories_a, fontsize=9.5, fontweight="bold")
+    ax1.set_ylabel("Cross-Seed Residual Correlation r(\u03ba_s, \u03ba_s') (\u2191)")
+    ax1.set_ylim(0, 0.90)
+    ax1.set_title("(A) IRT Residual Isolates Repeatable Item Learning \u03ba_sj", pad=10)
+    ax1.grid(True, axis="y", linestyle=":", alpha=0.4)
+
+    # ==================== Panel B ====================
+    categories_b = [
+        "CoT SFT\n(3 seeds)",
+        "Base Model\n(Llama-3.2-1B)",
+        "GRPO\n(3 seeds)",
+        "Q1 RL Runs\n(24 states)",
+    ]
+    x_b = np.arange(len(categories_b))
+    vals_b = [1.88, 2.83, 10.67, 11.8]
+    colors_b = ["#0284C7", "#475569", "#DC2626", "#D97706"]
+    edge_b = ["#0369A1", "#1E293B", "#991B1B", "#B45309"]
+
+    ax2.bar(x_b, vals_b, width=0.52, color=colors_b, edgecolor=edge_b, linewidth=1.1, alpha=0.88, zorder=3)
+
+    # Horizontal reference line at D = 1.035
+    ax2.axhline(1.035, color="#64748B", linestyle="--", linewidth=1.4, zorder=2)
+    ax2.text(0.05, 1.18, "No Order Effect Null D = 1.035", fontsize=8.2, color="#475569", fontweight="bold")
+
+    # SFT dots: 1.85, 1.88, 1.92
+    ax2.scatter([x_b[0]] * 3, [1.85, 1.88, 1.92], color="#0C4A6E", s=28, zorder=5)
+    # GRPO dots: 9.74, 10.67, 11.60
+    ax2.scatter([x_b[2]] * 3, [9.74, 10.67, 11.60], color="#7F1D1D", s=28, zorder=5)
+    # Q1 error bar: 6.58 to 19.36
+    ax2.errorbar(x_b[3], 11.8, yerr=[[11.8 - 6.58], [14.0 - 11.8]], fmt="none", color="#92400E", capsize=5, elinewidth=2.0, capthick=2.0, zorder=5)
+
+    # Text labels
+    ax2.text(x_b[0], 2.20, "D = 1.88\n(\u221234% order bias)", ha="center", fontsize=8.2, fontweight="bold", color="#0369A1")
+    ax2.text(x_b[1], 3.15, "D = 2.83\n(base)", ha="center", fontsize=8.2, fontweight="bold", color="#1E293B")
+    ax2.text(x_b[2], 10.95, "D = 10.67\n(4\u00d7 amplification)", ha="center", fontsize=8.2, fontweight="bold", color="#991B1B")
+    ax2.text(x_b[3], 9.8, "D = 11.8\n(6.58–19.4)", ha="center", fontsize=8.2, fontweight="bold", color="#78350F")
+
+    ax2.set_xticks(x_b)
+    ax2.set_xticklabels(categories_b, fontsize=9.5, fontweight="bold")
+    ax2.set_ylabel("Option-Order Dispersion D (Order 0 vs. 1) (\u2193)")
+    ax2.set_ylim(0, 14.8)
+    ax2.set_title("(B) Paired-Order IRT: RL Amplifies Option-Order Bias 4\u00d7", pad=10)
+    ax2.grid(True, axis="y", linestyle=":", alpha=0.4)
+
+    save_fig(fig, "Fig06_r1a_irt_extra_products.png")
+
+
 if __name__ == "__main__":
     make_fig0_eedi()
     make_fig1_posttraining_q2a()
@@ -787,4 +886,5 @@ if __name__ == "__main__":
     make_fig4_v4_base_logit_scurve()
     make_fig4_v5_stacked_b_vs_base()
     make_fig5_rl_critics()
-    print("All figures (Fig00..Fig05 + v2/v3/v4/v5 variants) generated successfully.")
+    make_fig6_r1a_extra_products()
+    print("All figures (Fig00..Fig06 + v2/v3/v4/v5 variants) generated successfully.")
