@@ -893,15 +893,15 @@ def make_fig6_r1a_extra_products():
 # ==============================================================================
 def make_fig7_m1_interventions():
     """
-    Unit M1 Audited Report (Claude #2 Issue Comment 6362638988):
-      Panel A: Single-Draw Accuracy Mean@16 across Base, SFT T=0.7, Standalone GRPO,
+    Unit M1 Audited Report (results/M1/stats.csv & notes/units/M1-notes.md:80-99):
+      Panel A: Single-Draw Mean@16 & Modal Maj@16 across Base, SFT T=0.7, Standalone GRPO,
                M1b (SFT -> GRPO), M1c ([2..6/8] Band GRPO), and M1a (Zero-training SFT T=0.2).
-      Panel B: Pass@16 Solution-Space Coverage & Retention.
+      Panel B: Pass@16 Solution-Space Coverage & Retention (including M1a T=0.2 narrowing).
     """
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15.0, 5.8), gridspec_kw={"width_ratios": [1.18, 1.0]})
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16.0, 6.2), gridspec_kw={"width_ratios": [1.25, 1.0]})
 
     # ==========================================
-    # PANEL A: Mean@16 Accuracy Across Interventions
+    # PANEL A: Mean@16 and Maj@16 Across Conditions
     # ==========================================
     cats_a = [
         "Base Model\n(1B-Instruct)",
@@ -911,43 +911,43 @@ def make_fig7_m1_interventions():
         "M1c:\nBand GRPO\n(u333)",
         "M1a:\nSFT T = 0.2\n(Zero-Train)",
     ]
-    vals_a = [37.42, 43.89, 46.85, 46.66, 46.52, 47.50]
-    colors_a = ["#64748B", "#0284C7", "#DC2626", "#7C3AED", "#D97706", "#059669"]
-    edges_a = ["#334155", "#0369A1", "#991B1B", "#5B21B6", "#B45309", "#047857"]
+
+    # Audited exact values from results/M1/stats.csv
+    mean16_a = [38.18, 43.89, 46.85, 46.66, 46.52, 47.50]
+    maj16_a  = [41.37, 50.40, 46.99, 51.96, 51.40, 50.20]
+
     x_a = np.arange(len(cats_a))
+    width = 0.36
 
-    bars1 = ax1.bar(x_a, vals_a, width=0.50, color=colors_a, edgecolor=edges_a, linewidth=1.2, alpha=0.90, zorder=3)
+    colors_base = ["#64748B", "#0284C7", "#DC2626", "#7C3AED", "#D97706", "#059669"]
+    edges_base = ["#334155", "#0369A1", "#991B1B", "#5B21B6", "#B45309", "#047857"]
 
-    # Individual seed dots
-    sft_dots = [43.7, 43.9, 44.1]
-    grpo_dots = [46.6, 46.8, 47.1]
-    m1b_dots = [46.4, 46.7, 46.9]
-    m1c_dots = [46.3, 46.5, 46.8]
-    m1a_dots = [47.2, 47.5, 47.8]
-
-    ax1.scatter([x_a[1]] * 3, sft_dots, color="#0C4A6E", s=26, zorder=5)
-    ax1.scatter([x_a[2]] * 3, grpo_dots, color="#7F1D1D", s=26, zorder=5)
-    ax1.scatter([x_a[3]] * 3, m1b_dots, color="#4C1D95", s=26, zorder=5)
-    ax1.scatter([x_a[4]] * 3, m1c_dots, color="#78350F", s=26, zorder=5)
-    ax1.scatter([x_a[5]] * 3, m1a_dots, color="#064E3B", s=26, zorder=5)
+    # Grouped bars: left = Mean@16 (solid), right = Maj@16 (hatched / translucent)
+    bars_mean = ax1.bar(x_a - width/2, mean16_a, width=width, color=colors_base, edgecolor=edges_base,
+                        linewidth=1.2, alpha=0.92, label="Mean@16 (Single-Draw)", zorder=3)
+    bars_maj = ax1.bar(x_a + width/2, maj16_a, width=width, color=colors_base, edgecolor=edges_base,
+                       linewidth=1.2, alpha=0.45, hatch="//", label="Maj@16 (Modal-Vote)", zorder=3)
 
     # Value text above bars
-    for i, v in enumerate(vals_a):
-        c = edges_a[i]
-        ax1.text(x_a[i], v + 0.55, f"{v:.1f}%", ha="center", fontsize=9.2, fontweight="bold", color=c)
+    for i in range(len(cats_a)):
+        vm = mean16_a[i]
+        vj = maj16_a[i]
+        ax1.text(x_a[i] - width/2, vm + 0.55, f"{vm:.1f}%", ha="center", fontsize=8.0, fontweight="bold", color=edges_base[i])
+        ax1.text(x_a[i] + width/2, vj + 0.55, f"{vj:.1f}%", ha="center", fontsize=8.0, fontweight="bold", color=edges_base[i])
 
-    # Clean tie bracket spanning Standalone GRPO (x=2), M1b (x=3), M1c (x=4)
-    tie_y = 48.6
-    ax1.plot([x_a[2], x_a[2], x_a[4], x_a[4]], [tie_y - 0.3, tie_y, tie_y, tie_y - 0.3], color="#475569", lw=1.1, zorder=4)
-    ax1.text((x_a[2] + x_a[4]) / 2.0, tie_y + 0.3, "Statistically Equivalent Ceiling (~46.7%)", ha="center", fontsize=7.5, fontweight="bold", color="#334155")
+    # Tie bracket for Mean@16: Standalone GRPO (x=2) vs M1b (x=3) vs M1c (x=4)
+    tie_y = 53.6
+    ax1.plot([x_a[2] - width/2, x_a[2] - width/2, x_a[4] - width/2, x_a[4] - width/2],
+             [tie_y - 0.4, tie_y, tie_y, tie_y - 0.4], color="#475569", lw=1.1, zorder=4)
+    ax1.text((x_a[2] + x_a[4]) / 2.0 - width/2, tie_y + 0.35, "Tied Mean@16 Ceiling (~46.7%)", ha="center", fontsize=7.5, fontweight="bold", color="#334155")
 
-    # Badge above M1a Zero-Training Win
+    # Badge for M1a Zero-Training Win over M1b in Mean@16
     ax1.annotate(
         "Zero-Train Win: +0.84%\n(SE 0.28%, 2.94 SE, 3/3 seeds)",
-        xy=(x_a[5], 48.3),
-        xytext=(x_a[5], 51.0),
+        xy=(x_a[5] - width/2, 48.3),
+        xytext=(x_a[5] - 0.15, 54.8),
         ha="center",
-        fontsize=7.6,
+        fontsize=7.5,
         fontweight="bold",
         color="#047857",
         arrowprops=dict(arrowstyle="->", color="#059669", lw=1.2),
@@ -957,19 +957,20 @@ def make_fig7_m1_interventions():
 
     # Top Annotation Box in Panel A
     anno_a = (
-        "Rule 1 (RL Bounded): M1b ties Standalone GRPO (d = \u22120.19%, SE 0.14%, branch 0; maj@16 +1.56%)\n"
+        "Rule 1 (RL Bounded): M1b ties Standalone GRPO on Mean@16 (46.7% vs 46.9%, d = \u22120.19%, SE 0.14%, branch 0)\n"
         "Rule 2 (Zero-Train Win): SFT T = 0.2 beats M1b in 3/3 seeds (+0.84%, SE 0.28%, 2.94 SE, branch \u22121)\n"
-        "Rule 3 (Band Dynamics): M1c accelerates at u83 (+0.36%, SE 0.04%, branch +1) but saturates by u333"
+        "Destructive Branch Fails: SFT \u2192 GRPO achieves 52.0% Maj@16 (+5.0% over GRPO 47.0%, mode retained)"
     )
-    ax1.text(0.5, 0.965, anno_a, transform=ax1.transAxes, ha="center", va="top", fontsize=7.8, color="#0F172A",
+    ax1.text(0.5, 0.965, anno_a, transform=ax1.transAxes, ha="center", va="top", fontsize=7.6, color="#0F172A",
              bbox=dict(boxstyle="round,pad=0.4", facecolor="#F8FAFC", edgecolor="#94A3B8", alpha=0.96, linewidth=0.8), zorder=6)
 
+    ax1.legend(loc="lower right", framealpha=0.92, edgecolor="#CBD5E1", fontsize=8.6)
     ax1.set_xticks(x_a)
-    ax1.set_xticklabels(cats_a, fontsize=8.6, fontweight="bold")
-    ax1.set_ylabel("Single-Draw Accuracy Mean@16 (%)", fontweight="bold")
-    ax1.set_ylim(32, 56.0)
+    ax1.set_xticklabels(cats_a, fontsize=8.4, fontweight="bold")
+    ax1.set_ylabel("Accuracy (%)", fontweight="bold")
+    ax1.set_ylim(32, 60.5)
     ax1.set_xlim(-0.6, len(cats_a) - 0.4)
-    ax1.set_title("(A) Single-Draw Accuracy Mean@16: SFT \u2192 GRPO Ties RL Ceiling", pad=12)
+    ax1.set_title("(A) Single-Draw Mean@16 & Modal Maj@16 Across Conditions", pad=12)
     ax1.grid(True, axis="y", linestyle=":", alpha=0.4)
 
     # ==========================================
@@ -978,64 +979,73 @@ def make_fig7_m1_interventions():
     cats_b = [
         "Base Model\n(1B-Instruct)",
         "Standalone\nGRPO (u333)\n(Collapse)",
-        "CoT SFT\n(T = 0.7)",
+        "M1a:\nSFT T = 0.2\n(Narrowed)",
+        "CoT SFT\n(T = 0.7)\n(Explore)",
         "M1b:\nSFT \u2192 GRPO\n(Retained)",
         "M1c:\nBand GRPO\n(Retained)",
     ]
-    vals_b = [93.1, 65.9, 96.6, 94.9, 94.2]
-    colors_b = ["#64748B", "#DC2626", "#0284C7", "#7C3AED", "#D97706"]
-    edges_b = ["#334155", "#991B1B", "#0369A1", "#5B21B6", "#B45309"]
+    vals_b = [93.00, 69.40, 87.89, 96.64, 94.87, 94.19]
+    colors_b = ["#64748B", "#DC2626", "#059669", "#0284C7", "#7C3AED", "#D97706"]
+    edges_b = ["#334155", "#991B1B", "#047857", "#0369A1", "#5B21B6", "#B45309"]
     x_b = np.arange(len(cats_b))
 
-    bars2 = ax2.bar(x_b, vals_b, width=0.48, color=colors_b, edgecolor=edges_b, linewidth=1.2, alpha=0.90, zorder=3)
+    bars2 = ax2.bar(x_b, vals_b, width=0.50, color=colors_b, edgecolor=edges_b, linewidth=1.2, alpha=0.90, zorder=3)
 
     # Value text above bars
     for i, v in enumerate(vals_b):
         c = edges_b[i]
-        ax2.text(x_b[i], v + 1.2, f"{v:.1f}%", ha="center", fontsize=9.2, fontweight="bold", color=c)
+        ax2.text(x_b[i], v + 1.2, f"{v:.1f}%", ha="center", fontsize=8.8, fontweight="bold", color=c)
 
     # GRPO collapse annotation inside open space above GRPO bar
     ax2.annotate(
-        "\u221227.2% Coverage Loss\n(Single-mode collapse)",
-        xy=(x_b[1], 68.0),
-        xytext=(x_b[1], 82.0),
+        "\u221223.6% Coverage Loss\n(Single-mode collapse)",
+        xy=(x_b[1], 71.0),
+        xytext=(x_b[1], 83.5),
         ha="center",
-        fontsize=8.2,
+        fontsize=8.0,
         fontweight="bold",
         color="#991B1B",
-        arrowprops=dict(arrowstyle="->", color="#DC2626", lw=1.4),
+        arrowprops=dict(arrowstyle="->", color="#DC2626", lw=1.3),
         bbox=dict(boxstyle="round,pad=0.25", facecolor="#FEF2F2", edgecolor="#F87171", alpha=0.95, linewidth=0.8),
         zorder=6
     )
 
-    # Solution space retention badge above M1b & M1c
-    ret_y = 101.5
-    ax2.plot([x_b[3], x_b[3], x_b[4], x_b[4]], [ret_y - 1.2, ret_y, ret_y, ret_y - 1.2], color="#5B21B6", lw=1.1, zorder=5)
+    # Unified Operator Composition & ZPD Early Acceleration callout above M1b & M1c
+    ret_text = (
+        "Operator Composition Retains Reach (>94%)\n"
+        "\u2022 Prevents Standalone Mode-Collapse (69.4%)\n"
+        "\u2022 u83 ZPD Boost: +0.36% (8.48 SE, p < 0.001)\n"
+        "\u2022 Dead-Rollouts: 33.7% \u2192 23.2% (10.5% cut)"
+    )
     ax2.text(
-        (x_b[3] + x_b[4]) / 2.0, ret_y + 1.2,
-        "Coverage Preserved (>94%)\nAvoids GRPO Mode-Collapse",
+        (x_b[4] + x_b[5]) / 2.0, 108.5,
+        ret_text,
         ha="center",
-        fontsize=7.6,
+        va="center",
+        fontsize=7.4,
         fontweight="bold",
         color="#4C1D95",
-        bbox=dict(boxstyle="round,pad=0.25", facecolor="#F5F3FF", edgecolor="#A78BFA", alpha=0.95, linewidth=0.8),
+        bbox=dict(boxstyle="round,pad=0.35", facecolor="#F5F3FF", edgecolor="#A78BFA", alpha=0.96, linewidth=0.8),
         zorder=6
     )
 
+    # Subtle bracket connecting M1b and M1c to the box
+    ax2.plot([x_b[4], x_b[4], x_b[5], x_b[5]], [98.5, 101.5, 101.5, 98.5], color="#5B21B6", lw=1.1, zorder=5)
+
     # Top Annotation Box in Panel B
     anno_b = (
-        "Standalone GRPO mode-collapses to 65.9% (-27.2% solution space loss).\n"
-        "CoT SFT expands Pass@16 reach to 96.6% via high-temperature diversity.\n"
+        "Standalone GRPO mode-collapses to 69.4% (-23.6% solution space loss).\n"
+        "CoT SFT expands Pass@16 reach to 96.6%; M1a T=0.2 narrows reach to 87.9%.\n"
         "Operator Composition retains >94% coverage while matching GRPO single-draw."
     )
-    ax2.text(0.5, 0.965, anno_b, transform=ax2.transAxes, ha="center", va="top", fontsize=7.8, color="#0F172A",
+    ax2.text(0.5, 0.965, anno_b, transform=ax2.transAxes, ha="center", va="top", fontsize=7.6, color="#0F172A",
              bbox=dict(boxstyle="round,pad=0.4", facecolor="#F8FAFC", edgecolor="#94A3B8", alpha=0.96, linewidth=0.8), zorder=6)
 
     ax2.set_xticks(x_b)
-    ax2.set_xticklabels(cats_b, fontsize=8.8, fontweight="bold")
+    ax2.set_xticklabels(cats_b, fontsize=8.4, fontweight="bold")
     ax2.set_ylabel("Solution Coverage Pass@16 (%)", fontweight="bold")
-    ax2.set_ylim(50, 122)
-    ax2.set_xlim(-0.55, len(cats_b) - 0.45)
+    ax2.set_ylim(50, 126)
+    ax2.set_xlim(-0.6, len(cats_b) - 0.25)
     ax2.set_title("(B) Pass@16 Coverage: SFT \u2192 GRPO Prevents Mode-Collapse", pad=12)
     ax2.grid(True, axis="y", linestyle=":", alpha=0.4)
 
