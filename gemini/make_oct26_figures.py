@@ -790,47 +790,52 @@ def make_fig5_rl_critics():
 #   Rows 4, 5, 6, 21 from JOINT-CLAIMS-LIST.md
 # ==============================================================================
 def make_fig6_r1a_extra_products():
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12.2, 4.8))
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12.8, 5.0))
     fig.subplots_adjust(wspace=0.28)
 
     # ==================== Panel A ====================
     categories_a = [
-        "Naive 1D IRT\n(Q2-A)",
-        "GRPO IRT Residual\n\u03ba_sj (Row 21)",
-        "CoT SFT IRT Residual\n\u03ba_sj (Row 5)",
+        "GRPO Residual \u03ba_sj\n(Seeds 1 & 2, Row 21)",
+        "CoT SFT Residual \u03ba_sj\n(3 Seed Pairs, Row 5)",
     ]
     x_a = np.arange(len(categories_a))
-    vals_a = [0.009, 0.603, 0.731]
-    colors_a = ["#94A3B8", "#DC2626", "#0284C7"]
-    edge_a = ["#475569", "#991B1B", "#0369A1"]
+    vals_a = [0.603, 0.731]
+    colors_a = ["#DC2626", "#0284C7"]
+    edge_a = ["#991B1B", "#0369A1"]
 
-    ax1.bar(x_a, vals_a, width=0.52, color=colors_a, edgecolor=edge_a, linewidth=1.1, alpha=0.88, zorder=3)
+    ax1.bar(x_a, vals_a, width=0.44, color=colors_a, edgecolor=edge_a, linewidth=1.1, alpha=0.88, zorder=3)
 
     # GRPO null 97.5% = 0.112
-    ax1.hlines(0.112, x_a[1] - 0.30, x_a[1] + 0.30, color="#7F1D1D", linestyle="--", linewidth=1.8, zorder=4)
-    ax1.text(x_a[1], 0.125, "Null 97.5%: 0.112", ha="center", fontsize=8.0, fontweight="bold", color="#7F1D1D")
+    ax1.hlines(0.112, x_a[0] - 0.24, x_a[0] + 0.24, color="#7F1D1D", linestyle="--", linewidth=1.8, zorder=4)
+    ax1.text(x_a[0], 0.125, "Planted Null 97.5%: 0.112", ha="center", fontsize=8.2, fontweight="bold", color="#7F1D1D")
 
     # SFT null 97.5% = 0.195
-    ax1.hlines(0.195, x_a[2] - 0.30, x_a[2] + 0.30, color="#0C4A6E", linestyle="--", linewidth=1.8, zorder=4)
-    ax1.text(x_a[2], 0.208, "Null 97.5%: 0.195", ha="center", fontsize=8.0, fontweight="bold", color="#0C4A6E")
+    ax1.hlines(0.195, x_a[1] - 0.24, x_a[1] + 0.24, color="#0C4A6E", linestyle="--", linewidth=1.8, zorder=4)
+    ax1.text(x_a[1], 0.208, "Planted Null 97.5%: 0.195", ha="center", fontsize=8.2, fontweight="bold", color="#0C4A6E")
 
     # SFT individual seed pairs: 0.727, 0.732, 0.735
-    ax1.scatter([x_a[2]] * 3, [0.727, 0.732, 0.735], color="#0C4A6E", s=28, zorder=5)
+    ax1.scatter([x_a[1]] * 3, [0.727, 0.732, 0.735], color="#0C4A6E", s=32, zorder=5)
 
     # Value text labels on bars
-    ax1.text(x_a[0], 0.025, "r = +0.009\n(no lift)", ha="center", fontsize=8.5, fontweight="bold", color="#1E293B")
-    ax1.text(x_a[1], 0.615, "r = 0.603***", ha="center", fontsize=9.2, fontweight="bold", color="#991B1B")
-    ax1.text(x_a[2], 0.745, "r = 0.731***", ha="center", fontsize=9.2, fontweight="bold", color="#0369A1")
+    ax1.text(x_a[0], 0.618, "r = 0.603***", ha="center", fontsize=9.2, fontweight="bold", color="#991B1B")
+    ax1.text(x_a[1], 0.750, "Mean r = 0.731***", ha="center", fontsize=9.2, fontweight="bold", color="#0369A1")
 
-    # SFT modal key flips annotation
-    ax1.text(x_a[2], 0.44, "+6.0% to +8.3%\nModal-Key Flips\n(Row 6)", ha="center", fontsize=8.2, color="#0C4A6E", fontweight="bold",
-             bbox=dict(boxstyle="round,pad=0.3", facecolor="#F0F9FF", edgecolor="#0284C7", alpha=0.92, linewidth=0.8), zorder=6)
+    # Annotation box for S-1 and S-6
+    anno_text = (
+        "Both SFT (+6.0% to +8.3% modal flips toward key) and GRPO repeat beyond the\n"
+        "nulls tested so far after removing common (\u03c4_s, \u03b4_s).\n"
+        "S-6 Caveat: Seeds share 1 start model; 2 additional P1c nulls queued\n"
+        "(SFT at fitted values & shared non-linear base misfit)."
+    )
+    ax1.text(0.5, 0.93, anno_text, ha="center", va="center", fontsize=7.6, color="#1E293B",
+             bbox=dict(boxstyle="round,pad=0.35", facecolor="#F8FAFC", edgecolor="#94A3B8", alpha=0.95, linewidth=0.8), zorder=6)
 
     ax1.set_xticks(x_a)
     ax1.set_xticklabels(categories_a, fontsize=9.5, fontweight="bold")
     ax1.set_ylabel("Cross-Seed Residual Correlation r(\u03ba_s, \u03ba_s') (\u2191)")
-    ax1.set_ylim(0, 0.90)
-    ax1.set_title("(A) IRT Residual Isolates Repeatable Item Learning \u03ba_sj", pad=10)
+    ax1.set_xlim(-0.55, 1.55)
+    ax1.set_ylim(0, 1.08)
+    ax1.set_title("(A) Orthogonal Item Residual \u03ba_sj Repeats Beyond Nulls", pad=10)
     ax1.grid(True, axis="y", linestyle=":", alpha=0.4)
 
     # ==================== Panel B ====================
