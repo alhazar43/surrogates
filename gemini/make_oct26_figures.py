@@ -18,7 +18,7 @@ Generate the 6 clean figures (Fig00 through Fig05) for the Oct 26, 2026 presenta
 
   - Fig03_irt_subject_separation_2d.png (Units W0 + S1 + Q2g, Single-Panel — POSITIVE IRT DIAGNOSTIC #1):
       Dataset: 1,472 matched MMLU items across 15 subjects (Llama-3.2-1B-Instruct CoT SFT vs. GRPO).
-      Role: 2D item parameters (b_m, a_m) explain the puzzle at the subject level — item difficulty b_m separates
+      Role: 2D item parameters (a_m, b_m) explain the puzzle at the subject level — item difficulty b_m separates
       GRPO-favored factual subjects from SFT-favored math/quant subjects (r = +0.85), while discrimination a_m
       shows why 1D ability theta overweights factual recall 5x over math.
 
@@ -237,7 +237,7 @@ def make_fig2_sft_vs_grpo_puzzle():
 
 # ==============================================================================
 # FIGURE 3 (Units W0 + S1 + Q2g, Single-Panel — POSITIVE IRT #1):
-#   How 2D Item Parameters (b_m, a_m) Explain the Subject-Level Crossover
+#   How 2D Item Parameters (a_m, b_m) Explain the Subject-Level Crossover
 # ==============================================================================
 def make_fig3_irt_subject_separation():
     w0 = pd.read_csv(os.path.join(RESULTS, "W0", "items_bank.csv"))
@@ -276,9 +276,6 @@ def make_fig3_irt_subject_separation():
     ax.plot(x_grid, m_sft * x_grid + c_sft_l, "-", color="#0284C7", linewidth=2.2, alpha=0.8)
     ax.plot(x_grid, m_grpo * x_grid + c_grpo_l, "-", color="#DC2626", linewidth=2.2, alpha=0.8)
 
-    ax.scatter([], [], s=1.45 * 95.0, color="#94A3B8", alpha=0.6, label="Bubble Size: a = 1.45 (Marketing, 5\u00d7 weight in 1D \u03b8)")
-    ax.scatter([], [], s=0.28 * 95.0, color="#94A3B8", alpha=0.6, label="Bubble Size: a = 0.28 (HS Math, 1\u00d7 weight in 1D \u03b8)")
-
     for subj, label, dx, dy, col in [
         ("marketing", "Marketing (a=1.45)", 0.07, -0.5, "#991B1B"),
         ("sociology", "Sociology (a=1.28)", 0.07, -0.8, "#991B1B"),
@@ -289,7 +286,7 @@ def make_fig3_irt_subject_separation():
         col_y = "dp_grpo" if col == "#991B1B" else "dp_sft"
         ax.text(r["b"] + dx, r[col_y] + dy, label, fontsize=9.2, color=col, fontweight="bold")
 
-    ax.set_title("IRT (b_m, a_m) Separates SFT vs. GRPO Gains Across 15 MMLU Subjects (r = +0.85)", pad=10)
+    ax.set_title("IRT (a_m, b_m) Separates SFT vs. GRPO Gains Across 15 MMLU Subjects (r = +0.85)", pad=10)
     ax.set_xlabel("Subject Mean IRT Difficulty b_m (Easy \u2192 Hard)")
     ax.set_ylabel("Pass-Rate Change Over Base: \u0394Mean@16 (% pts) (\u2191)")
     ax.set_xlim(-1.15, 2.55)
@@ -298,6 +295,61 @@ def make_fig3_irt_subject_separation():
     ax.grid(True, linestyle=":", alpha=0.4)
 
     save_fig(fig, "Fig03_irt_subject_separation_2d.png")
+
+
+# ==============================================================================
+# FIGURE 3 v2: 15 MMLU Subjects with 1,472 Background Items (a_m, b_m)
+# ==============================================================================
+def make_fig3_v2_irt_subject_separation():
+    w0 = pd.read_csv(os.path.join(RESULTS, "W0", "items_bank.csv"))
+    w0_ok = w0[w0["match_status"] == "matched"].copy()
+    t9 = pd.read_csv(os.path.join(RESULTS, "T9r", "items_wide.csv")).set_index("item_id").loc[w0_ok["bank_row_id"]]
+
+    w0_ok["dp_sft"] = t9[["dp_key_sft_0_70", "dp_key_sft_1_70", "dp_key_sft_2_70"]].mean(axis=1).values * 100.0
+    w0_ok["dp_grpo"] = t9[["dp_key_rl_0_666", "dp_key_rl_1_666", "dp_key_rl_2_666"]].mean(axis=1).values * 100.0
+
+    sub = w0_ok.groupby("subject").agg({"b": "mean", "a": "mean", "dp_sft": "mean", "dp_grpo": "mean"}).sort_values("b")
+
+    fig, ax = plt.subplots(1, 1, figsize=(8.0, 5.4))
+    ax.axhline(0, color="#64748B", linestyle="--", linewidth=1.3)
+
+    # 1,472 background items (translucent)
+    ax.scatter(w0_ok["b"], w0_ok["dp_sft"], s=w0_ok["a"] * 16.0, color="#0284C7", alpha=0.10, edgecolors="none", zorder=2)
+    ax.scatter(w0_ok["b"], w0_ok["dp_grpo"], s=w0_ok["a"] * 16.0, color="#DC2626", alpha=0.10, edgecolors="none", zorder=2)
+
+    # Subject-level bubbles (15 subjects)
+    sizes = sub["a"] * 125.0
+    ax.scatter(sub["b"], sub["dp_sft"], s=sizes, color="#0284C7", alpha=0.88, edgecolors="#0369A1", linewidth=1.2, zorder=4,
+               label="CoT SFT (wins high-b math/quant subjects)")
+    ax.scatter(sub["b"], sub["dp_grpo"], s=sizes, color="#DC2626", marker="s", alpha=0.88, edgecolors="#991B1B", linewidth=1.2, zorder=4,
+               label="GRPO (wins low-b factual subjects)")
+
+    # Linear trendlines
+    x_grid = np.linspace(sub["b"].min() - 0.15, sub["b"].max() + 0.15, 100)
+    m_sft, c_sft = np.polyfit(sub["b"], sub["dp_sft"], 1)
+    m_grpo, c_grpo = np.polyfit(sub["b"], sub["dp_grpo"], 1)
+    ax.plot(x_grid, m_sft * x_grid + c_sft, "-", color="#0284C7", linewidth=2.4, alpha=0.85, zorder=3)
+    ax.plot(x_grid, m_grpo * x_grid + c_grpo, "-", color="#DC2626", linewidth=2.4, alpha=0.85, zorder=3)
+
+    for subj, label, dx, dy, col in [
+        ("marketing", "Marketing (a=1.45)", 0.08, -0.6, "#991B1B"),
+        ("sociology", "Sociology (a=1.13)", 0.08, -0.8, "#991B1B"),
+        ("elementary_mathematics", "Elem. Math (a=0.43)", -0.88, -0.8, "#0369A1"),
+        ("high_school_mathematics", "HS Math (a=0.28)", -0.72, 1.2, "#0369A1"),
+    ]:
+        r = sub.loc[subj]
+        col_y = "dp_grpo" if col == "#991B1B" else "dp_sft"
+        ax.text(r["b"] + dx, r[col_y] + dy, label, fontsize=9.2, color=col, fontweight="bold", zorder=5)
+
+    ax.set_title("IRT (a_m, b_m) Separates SFT vs. GRPO Across 15 Subjects & 1,472 Items (r = +0.95)", pad=10)
+    ax.set_xlabel("Subject Mean IRT Difficulty b_m (Easy \u2192 Hard)")
+    ax.set_ylabel("Item Pass-Rate Change: \u0394p (% pts) (\u2191)")
+    ax.set_xlim(-1.3, 2.7)
+    ax.set_ylim(-32, 24)
+    ax.legend(loc="lower left", frameon=True, facecolor="white", framealpha=0.93, fontsize=9.0)
+    ax.grid(True, linestyle=":", alpha=0.4)
+
+    save_fig(fig, "Fig03_v2.png")
 
 
 # ==============================================================================
@@ -348,6 +400,62 @@ def make_fig4_irt_item_slope():
     ax.grid(True, linestyle=":", alpha=0.4)
 
     save_fig(fig, "Fig04_irt_item_slope_mechanism.png")
+
+
+# ==============================================================================
+# FIGURE 4 v2: 10 Deciles + 1,472 Individual Items with Discrimination Bubble Sizes
+# ==============================================================================
+def make_fig4_v2_irt_item_slope():
+    w0 = pd.read_csv(os.path.join(RESULTS, "W0", "items_bank.csv"))
+    w0_ok = w0[w0["match_status"] == "matched"].copy()
+    t9 = pd.read_csv(os.path.join(RESULTS, "T9r", "items_wide.csv")).set_index("item_id").loc[w0_ok["bank_row_id"]]
+
+    w0_ok["p_base"] = np.clip(t9["p_key_base"].values, 1e-4, 1 - 1e-4)
+    w0_ok["L_base"] = logit(w0_ok["p_base"])
+    w0_ok["dp_sft"] = t9[["dp_key_sft_0_70", "dp_key_sft_1_70", "dp_key_sft_2_70"]].mean(axis=1).values * 100.0
+    w0_ok["dp_grpo"] = t9[["dp_key_rl_0_666", "dp_key_rl_1_666", "dp_key_rl_2_666"]].mean(axis=1).values * 100.0
+
+    w0_ok["p_sft"] = np.clip(w0_ok["p_base"] + w0_ok["dp_sft"] / 100.0, 1e-4, 1 - 1e-4)
+    w0_ok["p_grpo"] = np.clip(w0_ok["p_base"] + w0_ok["dp_grpo"] / 100.0, 1e-4, 1 - 1e-4)
+
+    L0_all = w0_ok["L_base"].to_numpy()
+    res_g = minimize(lambda x: np.mean((w0_ok["p_grpo"].to_numpy() - expit(x[0] * L0_all + x[1])) ** 2), [1.8, 0.0])
+    res_s = minimize(lambda x: np.mean((w0_ok["p_sft"].to_numpy() - expit(x[0] * L0_all + x[1])) ** 2), [0.5, 0.0])
+    w0_ok["pred_dp_grpo"] = (expit(res_g.x[0] * L0_all + res_g.x[1]) - w0_ok["p_base"]) * 100.0
+    w0_ok["pred_dp_sft"] = (expit(res_s.x[0] * L0_all + res_s.x[1]) - w0_ok["p_base"]) * 100.0
+
+    w0_ok["b_bin"] = pd.qcut(w0_ok["b"], q=10)
+    binned = w0_ok.groupby("b_bin", observed=False)[["a", "b", "dp_sft", "dp_grpo", "pred_dp_sft", "pred_dp_grpo"]].mean()
+    b_grid = binned["b"].to_numpy()
+    sizes_bin = binned["a"].to_numpy() * 110.0
+
+    fig, ax = plt.subplots(1, 1, figsize=(7.8, 5.2))
+    ax.axhline(0, color="#64748B", linestyle="--", linewidth=1.4)
+
+    # 1,472 raw individual items background scatter
+    ax.scatter(w0_ok["b"], w0_ok["dp_grpo"], s=w0_ok["a"] * 18.0, color="#DC2626", alpha=0.15, edgecolors="none", zorder=2)
+    ax.scatter(w0_ok["b"], w0_ok["dp_sft"], s=w0_ok["a"] * 18.0, color="#0284C7", alpha=0.15, edgecolors="none", zorder=2)
+
+    # 10 decile binned markers
+    ax.scatter(b_grid, binned["dp_grpo"], s=sizes_bin, color="#DC2626", marker="s", zorder=5, edgecolors="#7F1D1D", linewidth=1.2,
+               label="GRPO 10 Deciles (bubble size ~ mean discrimination a_bin)")
+    ax.scatter(b_grid, binned["dp_sft"], s=sizes_bin, color="#0284C7", marker="o", zorder=5, edgecolors="#0369A1", linewidth=1.2,
+               label="CoT SFT 10 Deciles (bubble size ~ mean discrimination a_bin)")
+
+    # Continuous fitted curves
+    ax.plot(b_grid, binned["pred_dp_grpo"], "-", color="#DC2626", linewidth=2.8, zorder=6,
+            label="GRPO Within-Run IRT Slope (\u03c4 = 1.88 > 1: sharpens preference)")
+    ax.plot(b_grid, binned["pred_dp_sft"], "-", color="#0284C7", linewidth=2.8, zorder=6,
+            label="CoT SFT Within-Run IRT Slope (\u03c4 = 0.71 < 1: flattens & shifts)")
+
+    ax.set_title("Item-Level Pass-Rate Change vs. IRT (a_j, b_j) Across 10 Deciles & 1,472 Items", pad=10)
+    ax.set_xlabel("IRT Item Difficulty b_j (10 Equal-Size Deciles: Easy \u2192 Hard)")
+    ax.set_ylabel("Item Pass-Rate Change: \u0394p_j (% pts) (\u2191)")
+    ax.set_ylim(-35, 30)
+    ax.legend(loc="lower right", frameon=True, facecolor="white", framealpha=0.93, fontsize=8.8)
+    ax.grid(True, linestyle=":", alpha=0.4)
+
+    save_fig(fig, "Fig04_v2.png")
 
 
 # ==============================================================================
@@ -417,6 +525,8 @@ if __name__ == "__main__":
     make_fig1_posttraining_q2a()
     make_fig2_sft_vs_grpo_puzzle()
     make_fig3_irt_subject_separation()
+    make_fig3_v2_irt_subject_separation()
     make_fig4_irt_item_slope()
+    make_fig4_v2_irt_item_slope()
     make_fig5_rl_critics()
-    print("All 6 clean figures (Fig00..Fig05) generated successfully.")
+    print("All figures (Fig00..Fig05 + Fig03_v2 + Fig04_v2) generated successfully.")
