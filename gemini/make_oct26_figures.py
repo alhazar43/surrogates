@@ -701,7 +701,7 @@ def make_fig4_v5_stacked_b_vs_base():
     ax2.plot(L_grid, pred_sft_curve, "-", color="#0284C7", linewidth=2.8, zorder=6, label=f"CoT SFT Analytical S-Curve (\u03c4 = {res_s.x[0]:.2f} < 1)")
 
     # Actionable RL prescription annotation
-    ax2.text(-2.8, -17.0, "p_base < 25% (0/8 & 1/8 draws):\nGRPO sharpening hurts (\u0394p < 0)\n\u2192 M1c filters out this zone",
+    ax2.text(-2.8, -21.0, "p_base < 25% (0/8 & 1/8 draws):\nGRPO sharpening hurts (\u0394p < 0)\n\u2192 M1c filters out this zone",
              ha="center", fontsize=8.0, color="#991B1B", fontweight="bold",
              bbox=dict(boxstyle="round,pad=0.35", facecolor="#FEF2F2", edgecolor="#F87171", alpha=0.92, linewidth=0.8), zorder=7)
 
@@ -710,7 +710,7 @@ def make_fig4_v5_stacked_b_vs_base():
     ax2.set_ylabel("Pass-Rate Change: \u0394p_j (% pts) (\u2191)")
     ax2.set_xlim(3.5, -4.5)
     ax2.set_ylim(-28, 32)
-    ax2.legend(loc="lower left", frameon=True, facecolor="white", framealpha=0.93, fontsize=8.0)
+    ax2.legend(loc="upper right", frameon=True, facecolor="white", framealpha=0.93, fontsize=8.0)
     ax2.grid(True, linestyle=":", alpha=0.4)
 
     ax2_top = ax2.twiny()
@@ -849,25 +849,26 @@ def make_fig6_r1a_extra_products():
 
     # Horizontal reference line at D = 1.035
     ax2.axhline(1.035, color="#64748B", linestyle="--", linewidth=1.4, zorder=2)
-    ax2.text(0.05, 1.18, "No Order Effect Null D = 1.035", fontsize=8.2, color="#475569", fontweight="bold")
+    ax2.text(1.55, 1.35, "No Order Effect Null D = 1.035", ha="center", fontsize=8.2, color="#475569", fontweight="bold",
+             bbox=dict(boxstyle="round,pad=0.2", facecolor="white", edgecolor="#CBD5E1", alpha=0.9, linewidth=0.6), zorder=6)
 
     # SFT dots: 1.85, 1.88, 1.92
     ax2.scatter([x_b[0]] * 3, [1.85, 1.88, 1.92], color="#0C4A6E", s=28, zorder=5)
     # GRPO dots: 9.74, 10.67, 11.60
     ax2.scatter([x_b[2]] * 3, [9.74, 10.67, 11.60], color="#7F1D1D", s=28, zorder=5)
     # Q1 error bar: 6.58 to 19.36
-    ax2.errorbar(x_b[3], 11.8, yerr=[[11.8 - 6.58], [14.0 - 11.8]], fmt="none", color="#92400E", capsize=5, elinewidth=2.0, capthick=2.0, zorder=5)
+    ax2.errorbar(x_b[3], 11.8, yerr=[[11.8 - 6.58], [19.36 - 11.8]], fmt="none", color="#92400E", capsize=5, elinewidth=2.0, capthick=2.0, zorder=5)
 
     # Text labels
     ax2.text(x_b[0], 2.20, "D = 1.88\n(\u221234% order bias)", ha="center", fontsize=8.2, fontweight="bold", color="#0369A1")
     ax2.text(x_b[1], 3.15, "D = 2.83\n(base)", ha="center", fontsize=8.2, fontweight="bold", color="#1E293B")
-    ax2.text(x_b[2], 10.95, "D = 10.67\n(4\u00d7 amplification)", ha="center", fontsize=8.2, fontweight="bold", color="#991B1B")
-    ax2.text(x_b[3], 9.8, "D = 11.8\n(6.58–19.4)", ha="center", fontsize=8.2, fontweight="bold", color="#78350F")
+    ax2.text(x_b[2], 12.3, "D = 10.67\n(4\u00d7 amplification)", ha="center", fontsize=8.2, fontweight="bold", color="#991B1B")
+    ax2.text(x_b[3], 19.8, "D = 11.8\n(range: 6.6\u201319.4)", ha="center", fontsize=8.2, fontweight="bold", color="#78350F")
 
     ax2.set_xticks(x_b)
     ax2.set_xticklabels(categories_b, fontsize=9.5, fontweight="bold")
     ax2.set_ylabel("Option-Order Dispersion D (Order 0 vs. 1) (\u2193)")
-    ax2.set_ylim(0, 14.8)
+    ax2.set_ylim(0, 21.5)
     ax2.set_title("(B) Paired-Order IRT: RL Amplifies Option-Order Bias 4\u00d7", pad=10)
     ax2.grid(True, axis="y", linestyle=":", alpha=0.4)
 
