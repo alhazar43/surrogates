@@ -741,7 +741,7 @@ def make_fig5_rl_critics():
     q1_raw = pd.read_csv(os.path.join(RESULTS, "Q1", "stats.csv"))
     q1_pool = q1_raw[q1_raw["order"] == "pooled"].pivot(index="state", columns="statistic", values="value") * 100.0
 
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(13.6, 4.8), gridspec_kw={"width_ratios": [1.05, 1.15]})
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14.6, 5.2), gridspec_kw={"width_ratios": [1.02, 1.18]})
     fig.subplots_adjust(wspace=0.25)
 
     styles = [
@@ -761,7 +761,7 @@ def make_fig5_rl_critics():
     ax1.set_ylabel("MMLU Test Bank Accuracy: Mean@16 (%) (\u2191)")
     ax1.set_xticks([0, 83, 166, 250, 333])
     ax1.set_ylim(37.0, 50.0)
-    ax1.legend(loc="lower right", frameon=True, facecolor="white", framealpha=0.93, fontsize=8.8)
+    ax1.legend(loc="lower right", frameon=True, facecolor="white", framealpha=0.93, fontsize=8.6)
     ax1.grid(True, linestyle=":", alpha=0.4)
 
     metrics = ["mean_at_16", "pass_at_4", "pass_at_16"]
@@ -781,14 +781,27 @@ def make_fig5_rl_critics():
         for i, met in enumerate(metrics):
             seed_vals = q1_pool.loc[states, met].to_numpy()
             ax2.scatter(np.full(3, x[i] + offsets[idx]), seed_vals, s=20, color="#0F172A", alpha=0.75, zorder=5)
-            ax2.text(x[i] + offsets[idx], float(np.max(seed_vals)) + 1.1, f"{means[i]:.1f}", ha="center", fontsize=8.2, fontweight="bold", color="#1E293B")
+            ax2.text(x[i] + offsets[idx], float(np.max(seed_vals)) + 1.1, f"{means[i]:.1f}", ha="center", fontsize=8.0, fontweight="bold", color="#1E293B")
+
+    # EQ Latent Divergence Card (Unit R1c Audited, b4398d3)
+    eq_card = (
+        "EQ Latent Divergence (Unit R1c Audited, b4398d3):\n"
+        "\u2022 Equal Aggregate Mean@16: Critic arms match GRPO (~46.7%).\n"
+        "\u2022 Item Structure Detected: EQ identifies item-level divergence in 5 of 6\n"
+        "  equal-accuracy arm pairs (R_both = 0.195\u20130.370 > null threshold 0.1397).\n"
+        "\u2022 Pop0 vs Pop1 not detected (0.133). Equal test-score models learn distinct items!"
+    )
+    ax2.text(0.68, 0.965, eq_card, transform=ax2.transAxes, ha="center", va="top",
+             fontsize=7.2, fontweight="bold", color="#0F172A",
+             bbox=dict(boxstyle="round,pad=0.35", facecolor="#F8FAFC", edgecolor="#94A3B8", alpha=0.96, linewidth=0.8),
+             zorder=6)
 
     ax2.set_xticks(x)
     ax2.set_xticklabels(x_labels)
     ax2.set_ylabel("MMLU Test Bank Pass@k Accuracy (%) (\u2191)")
-    ax2.set_ylim(35.0, 79.5)
+    ax2.set_ylim(35.0, 92.0)
     ax2.set_title("(B) Step-333 Test Bank Pass@k Accuracy (k = 1, 4, 16; 3 Seeds)", pad=8)
-    ax2.legend(loc="upper left", frameon=True, facecolor="white", framealpha=0.93, fontsize=8.5)
+    ax2.legend(loc="upper left", bbox_to_anchor=(0.02, 0.74), frameon=True, facecolor="white", framealpha=0.93, fontsize=7.8)
     ax2.grid(True, axis="y", linestyle=":", alpha=0.4)
 
     save_fig(fig, "Fig05_rl_critics_q1.png")
@@ -799,12 +812,12 @@ def make_fig5_rl_critics():
 #   Rows 4, 5, 6, 21 from JOINT-CLAIMS-LIST.md
 # ==============================================================================
 def make_fig6_r1a_extra_products():
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12.8, 5.0))
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(13.2, 5.2))
     fig.subplots_adjust(wspace=0.28)
 
     # ==================== Panel A ====================
     categories_a = [
-        "GRPO Residual \u03ba_sj\n(Seeds 1 & 2, Row 21)",
+        "GRPO Residual \u03ba_sj\n(3 Seeds, Rows 5 & 21)",
         "CoT SFT Residual \u03ba_sj\n(3 Seed Pairs, Row 5)",
     ]
     x_a = np.arange(len(categories_a))
@@ -829,20 +842,21 @@ def make_fig6_r1a_extra_products():
     ax1.text(x_a[0], 0.618, "r = 0.603***", ha="center", fontsize=9.2, fontweight="bold", color="#991B1B")
     ax1.text(x_a[1], 0.750, "Mean r = 0.731***", ha="center", fontsize=9.2, fontweight="bold", color="#0369A1")
 
-    # Annotation box for S-1, S-6, and completed P1c nulls
+    # Annotation box for S-1, S-6, and completed P1c nulls + R1c 3-seed resolution
     anno_text = (
-        "Both SFT (+6.0% to +8.3% modal flips) and GRPO repeat beyond nulls tested.\n"
-        "P1c Null Tests Passed: Repeats beyond independent, shared-step, & half-shared nulls;\n"
-        "a cubic base-logit misfit (\u03bb\u00b3) explains only 0.1%\u20130.5% of real residual variance."
+        "Unit R1a + R1c Audited (b4398d3): Residuals repeat beyond all nulls tested.\n"
+        "\u2022 P4 Fails in 3/3 Seeds: GRPO sampled slope (4.53, 5.04, 3.79) sharpens 2.35,\n"
+        "  2.60, 1.72 above token-0 reads (\u03c4_0 ~ 1.9\u20132.2), rejecting single-mode gain (P4 \u2264 0.15).\n"
+        "\u2022 Shared misfit: Cubic base-logit (\u03bb\u00b3) explains only 0.1%\u20130.5% of residual variance."
     )
-    ax1.text(0.5, 0.94, anno_text, ha="center", va="center", fontsize=7.4, color="#1E293B",
+    ax1.text(0.5, 0.94, anno_text, transform=ax1.transAxes, ha="center", va="top", fontsize=7.2, color="#1E293B",
              bbox=dict(boxstyle="round,pad=0.35", facecolor="#F8FAFC", edgecolor="#94A3B8", alpha=0.95, linewidth=0.8), zorder=6)
 
     ax1.set_xticks(x_a)
-    ax1.set_xticklabels(categories_a, fontsize=9.5, fontweight="bold")
+    ax1.set_xticklabels(categories_a, fontsize=9.2, fontweight="bold")
     ax1.set_ylabel("Cross-Seed Residual Correlation r(\u03ba_s, \u03ba_s') (\u2191)")
     ax1.set_xlim(-0.55, 1.55)
-    ax1.set_ylim(0, 1.08)
+    ax1.set_ylim(0, 1.12)
     ax1.set_title("(A) Orthogonal Item Residual \u03ba_sj Repeats Beyond Nulls", pad=10)
     ax1.grid(True, axis="y", linestyle=":", alpha=0.4)
 
@@ -873,15 +887,26 @@ def make_fig6_r1a_extra_products():
     ax2.errorbar(x_b[3], 11.8, yerr=[[11.8 - 6.58], [19.36 - 11.8]], fmt="none", color="#92400E", capsize=5, elinewidth=2.0, capthick=2.0, zorder=5)
 
     # Text labels
-    ax2.text(x_b[0], 2.20, "D = 1.88\n(\u221234% order bias)", ha="center", fontsize=8.2, fontweight="bold", color="#0369A1")
-    ax2.text(x_b[1], 3.15, "D = 2.83\n(base)", ha="center", fontsize=8.2, fontweight="bold", color="#1E293B")
-    ax2.text(x_b[2], 12.3, "D = 10.67\n(4\u00d7 amplification)", ha="center", fontsize=8.2, fontweight="bold", color="#991B1B")
-    ax2.text(x_b[3], 19.8, "D = 11.8\n(range: 6.6\u201319.4)", ha="center", fontsize=8.2, fontweight="bold", color="#78350F")
+    ax2.text(x_b[0], 2.20, "D = 1.88\n(\u221234% order bias)", ha="center", fontsize=8.0, fontweight="bold", color="#0369A1")
+    ax2.text(x_b[1], 3.15, "D = 2.83\n(base)", ha="center", fontsize=8.0, fontweight="bold", color="#1E293B")
+    ax2.text(x_b[2], 12.3, "D = 10.67\n(4\u00d7 amplification)", ha="center", fontsize=8.0, fontweight="bold", color="#991B1B")
+    ax2.text(x_b[3], 19.8, "D = 11.8\n(range: 6.6\u201319.4)", ha="center", fontsize=8.0, fontweight="bold", color="#78350F")
+
+    # Item-by-order term annotation
+    anno_b = (
+        "Item-By-Order Term (Unit R1c Audited, b4398d3):\n"
+        "Order term present in all states (SD: GRPO 2.07\u20132.90 vs SFT 0.37\u20130.40);\n"
+        "absorbs order carry \u03c9 (falling from 7.1 to 2.2) while preserving \u03c4 within 0.15."
+    )
+    ax2.text(0.5, 0.94, anno_b, transform=ax2.transAxes, ha="center", va="top",
+             fontsize=7.2, color="#1E293B",
+             bbox=dict(boxstyle="round,pad=0.35", facecolor="#F8FAFC", edgecolor="#94A3B8", alpha=0.95, linewidth=0.8),
+             zorder=6)
 
     ax2.set_xticks(x_b)
-    ax2.set_xticklabels(categories_b, fontsize=9.5, fontweight="bold")
+    ax2.set_xticklabels(categories_b, fontsize=9.2, fontweight="bold")
     ax2.set_ylabel("Option-Order Dispersion D (Order 0 vs. 1) (\u2193)")
-    ax2.set_ylim(0, 21.5)
+    ax2.set_ylim(0, 26.5)
     ax2.set_title("(B) Paired-Order IRT: RL Amplifies Option-Order Bias 4\u00d7", pad=10)
     ax2.grid(True, axis="y", linestyle=":", alpha=0.4)
 
@@ -893,12 +918,13 @@ def make_fig6_r1a_extra_products():
 # ==============================================================================
 def make_fig7_m1_interventions():
     """
-    Unit M1 Audited Report (results/M1/stats.csv & notes/units/M1-notes.md:80-99):
+    Unit M1 + R2 Audited Report (results/M1/stats.csv & notes/units/R2.md, c87ae43):
       Panel A: Single-Draw Mean@16 & Modal Maj@16 across Base, SFT T=0.7, Standalone GRPO,
                M1b (SFT -> GRPO), M1c ([2..6/8] Band GRPO), and M1a (Zero-training SFT T=0.2).
       Panel B: Pass@16 Solution-Space Coverage & Retention (including M1a T=0.2 narrowing).
+      Panel C: IRT Diagnostics (Unit R2): Latent Slope Steepening (P5, A3, P6, A1/A2).
     """
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16.0, 6.2), gridspec_kw={"width_ratios": [1.25, 1.0]})
+    fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(22.5, 6.4), gridspec_kw={"width_ratios": [1.18, 1.0, 1.18]})
 
     # ==========================================
     # PANEL A: Mean@16 and Maj@16 Across Conditions
@@ -912,7 +938,6 @@ def make_fig7_m1_interventions():
         "M1a:\nSFT T = 0.2\n(Zero-Train)",
     ]
 
-    # Audited exact values from results/M1/stats.csv
     mean16_a = [38.18, 43.89, 46.85, 46.66, 46.52, 47.50]
     maj16_a  = [41.37, 50.40, 46.99, 51.96, 51.40, 50.20]
 
@@ -922,32 +947,28 @@ def make_fig7_m1_interventions():
     colors_base = ["#64748B", "#0284C7", "#DC2626", "#7C3AED", "#D97706", "#059669"]
     edges_base = ["#334155", "#0369A1", "#991B1B", "#5B21B6", "#B45309", "#047857"]
 
-    # Grouped bars: left = Mean@16 (solid), right = Maj@16 (hatched / translucent)
     bars_mean = ax1.bar(x_a - width/2, mean16_a, width=width, color=colors_base, edgecolor=edges_base,
                         linewidth=1.2, alpha=0.92, label="Mean@16 (Single-Draw)", zorder=3)
     bars_maj = ax1.bar(x_a + width/2, maj16_a, width=width, color=colors_base, edgecolor=edges_base,
                        linewidth=1.2, alpha=0.45, hatch="//", label="Maj@16 (Modal-Vote)", zorder=3)
 
-    # Value text above bars
     for i in range(len(cats_a)):
         vm = mean16_a[i]
         vj = maj16_a[i]
-        ax1.text(x_a[i] - width/2, vm + 0.55, f"{vm:.1f}%", ha="center", fontsize=8.0, fontweight="bold", color=edges_base[i])
-        ax1.text(x_a[i] + width/2, vj + 0.55, f"{vj:.1f}%", ha="center", fontsize=8.0, fontweight="bold", color=edges_base[i])
+        ax1.text(x_a[i] - width/2, vm + 0.55, f"{vm:.1f}%", ha="center", fontsize=7.8, fontweight="bold", color=edges_base[i])
+        ax1.text(x_a[i] + width/2, vj + 0.55, f"{vj:.1f}%", ha="center", fontsize=7.8, fontweight="bold", color=edges_base[i])
 
-    # Tie bracket for Mean@16: Standalone GRPO (x=2) vs M1b (x=3) vs M1c (x=4)
     tie_y = 53.6
     ax1.plot([x_a[2] - width/2, x_a[2] - width/2, x_a[4] - width/2, x_a[4] - width/2],
              [tie_y - 0.4, tie_y, tie_y, tie_y - 0.4], color="#475569", lw=1.1, zorder=4)
-    ax1.text((x_a[2] + x_a[4]) / 2.0 - width/2, tie_y + 0.35, "Tied Mean@16 Ceiling (~46.7%)", ha="center", fontsize=7.5, fontweight="bold", color="#334155")
+    ax1.text((x_a[2] + x_a[4]) / 2.0 - width/2, tie_y + 0.35, "Tied Mean@16 Ceiling (~46.7%)", ha="center", fontsize=7.2, fontweight="bold", color="#334155")
 
-    # Badge for M1a Zero-Training Win over M1b in Mean@16
     ax1.annotate(
         "Zero-Train Win: +0.84%\n(SE 0.28%, 2.94 SE, 3/3 seeds)",
         xy=(x_a[5] - width/2, 48.3),
         xytext=(x_a[5] - 0.15, 54.8),
         ha="center",
-        fontsize=7.5,
+        fontsize=7.2,
         fontweight="bold",
         color="#047857",
         arrowprops=dict(arrowstyle="->", color="#059669", lw=1.2),
@@ -955,18 +976,17 @@ def make_fig7_m1_interventions():
         zorder=6
     )
 
-    # Top Annotation Box in Panel A
     anno_a = (
         "Rule 1 (RL Bounded): M1b ties Standalone GRPO on Mean@16 (46.7% vs 46.9%, d = \u22120.19%, SE 0.14%, branch 0)\n"
         "Rule 2 (Zero-Train Win): SFT T = 0.2 beats M1b in 3/3 seeds (+0.84%, SE 0.28%, 2.94 SE, branch \u22121)\n"
         "Destructive Branch Fails: SFT \u2192 GRPO achieves 52.0% Maj@16 (+5.0% over GRPO 47.0%, mode retained)"
     )
-    ax1.text(0.5, 0.965, anno_a, transform=ax1.transAxes, ha="center", va="top", fontsize=7.6, color="#0F172A",
-             bbox=dict(boxstyle="round,pad=0.4", facecolor="#F8FAFC", edgecolor="#94A3B8", alpha=0.96, linewidth=0.8), zorder=6)
+    ax1.text(0.5, 0.965, anno_a, transform=ax1.transAxes, ha="center", va="top", fontsize=7.2, color="#0F172A",
+             bbox=dict(boxstyle="round,pad=0.35", facecolor="#F8FAFC", edgecolor="#94A3B8", alpha=0.96, linewidth=0.8), zorder=6)
 
-    ax1.legend(loc="lower right", framealpha=0.92, edgecolor="#CBD5E1", fontsize=8.6)
+    ax1.legend(loc="lower right", framealpha=0.92, edgecolor="#CBD5E1", fontsize=8.0)
     ax1.set_xticks(x_a)
-    ax1.set_xticklabels(cats_a, fontsize=8.4, fontweight="bold")
+    ax1.set_xticklabels(cats_a, fontsize=7.8, fontweight="bold")
     ax1.set_ylabel("Accuracy (%)", fontweight="bold")
     ax1.set_ylim(32, 60.5)
     ax1.set_xlim(-0.6, len(cats_a) - 0.4)
@@ -991,18 +1011,16 @@ def make_fig7_m1_interventions():
 
     bars2 = ax2.bar(x_b, vals_b, width=0.50, color=colors_b, edgecolor=edges_b, linewidth=1.2, alpha=0.90, zorder=3)
 
-    # Value text above bars
     for i, v in enumerate(vals_b):
         c = edges_b[i]
-        ax2.text(x_b[i], v + 1.2, f"{v:.1f}%", ha="center", fontsize=8.8, fontweight="bold", color=c)
+        ax2.text(x_b[i], v + 1.2, f"{v:.1f}%", ha="center", fontsize=8.2, fontweight="bold", color=c)
 
-    # GRPO collapse annotation inside open space above GRPO bar
     ax2.annotate(
         "\u221223.6% Coverage Loss\n(Single-mode collapse)",
         xy=(x_b[1], 71.0),
         xytext=(x_b[1], 83.5),
         ha="center",
-        fontsize=8.0,
+        fontsize=7.4,
         fontweight="bold",
         color="#991B1B",
         arrowprops=dict(arrowstyle="->", color="#DC2626", lw=1.3),
@@ -1010,7 +1028,6 @@ def make_fig7_m1_interventions():
         zorder=6
     )
 
-    # Unified Operator Composition & ZPD Early Acceleration callout above M1b & M1c
     ret_text = (
         "Operator Composition Retains Reach (>94%)\n"
         "\u2022 Prevents Standalone Mode-Collapse (69.4%)\n"
@@ -1022,32 +1039,119 @@ def make_fig7_m1_interventions():
         ret_text,
         ha="center",
         va="center",
-        fontsize=7.4,
+        fontsize=7.0,
         fontweight="bold",
         color="#4C1D95",
         bbox=dict(boxstyle="round,pad=0.35", facecolor="#F5F3FF", edgecolor="#A78BFA", alpha=0.96, linewidth=0.8),
         zorder=6
     )
 
-    # Subtle bracket connecting M1b and M1c to the box
     ax2.plot([x_b[4], x_b[4], x_b[5], x_b[5]], [98.5, 101.5, 101.5, 98.5], color="#5B21B6", lw=1.1, zorder=5)
 
-    # Top Annotation Box in Panel B
     anno_b = (
         "Standalone GRPO mode-collapses to 69.4% (-23.6% solution space loss).\n"
         "CoT SFT expands Pass@16 reach to 96.6%; M1a T=0.2 narrows reach to 87.9%.\n"
         "Operator Composition retains >94% coverage while matching GRPO single-draw."
     )
-    ax2.text(0.5, 0.965, anno_b, transform=ax2.transAxes, ha="center", va="top", fontsize=7.6, color="#0F172A",
-             bbox=dict(boxstyle="round,pad=0.4", facecolor="#F8FAFC", edgecolor="#94A3B8", alpha=0.96, linewidth=0.8), zorder=6)
+    ax2.text(0.5, 0.965, anno_b, transform=ax2.transAxes, ha="center", va="top", fontsize=7.2, color="#0F172A",
+             bbox=dict(boxstyle="round,pad=0.35", facecolor="#F8FAFC", edgecolor="#94A3B8", alpha=0.96, linewidth=0.8), zorder=6)
 
     ax2.set_xticks(x_b)
-    ax2.set_xticklabels(cats_b, fontsize=8.4, fontweight="bold")
+    ax2.set_xticklabels(cats_b, fontsize=7.8, fontweight="bold")
     ax2.set_ylabel("Solution Coverage Pass@16 (%)", fontweight="bold")
     ax2.set_ylim(50, 126)
     ax2.set_xlim(-0.6, len(cats_b) - 0.25)
     ax2.set_title("(B) Pass@16 Coverage: SFT \u2192 GRPO Prevents Mode-Collapse", pad=12)
     ax2.grid(True, axis="y", linestyle=":", alpha=0.4)
+
+    # ==========================================
+    # PANEL C: IRT Diagnostics (Unit R2 Audited): Latent Slope Steepening
+    # ==========================================
+    cats_c = [
+        "SFT Start\n(Reference)",
+        "M1b: SFT\u2192RL\n(u83)",
+        "M1c: Band\n(u83)",
+        "M1b: SFT\u2192RL\n(u333)",
+        "M1c: Band\n(u333)",
+        "M1a: T = 0.2\n(Zero-Train)",
+    ]
+
+    tau_vals = [1.000, 1.080, 1.118, 1.192, 1.233, 1.664]
+    tau_seeds = [
+        [1.000, 1.000, 1.000],
+        [1.0712, 1.1047, 1.0650],
+        [1.1028, 1.1441, 1.1079],
+        [1.2126, 1.2177, 1.1470],
+        [1.2278, 1.2938, 1.1759],
+        [1.663, 1.710, 1.618],
+    ]
+
+    colors_c = ["#0284C7", "#7C3AED", "#D97706", "#7C3AED", "#D97706", "#059669"]
+    edges_c = ["#0369A1", "#5B21B6", "#B45309", "#5B21B6", "#B45309", "#047857"]
+    x_c = np.arange(len(cats_c))
+
+    bars3 = ax3.bar(x_c, tau_vals, width=0.50, color=colors_c, edgecolor=edges_c, linewidth=1.2, alpha=0.90, zorder=3)
+
+    for i in range(len(cats_c)):
+        dots = tau_seeds[i]
+        ax3.scatter([x_c[i]] * len(dots), dots, color="#0F172A", s=22, zorder=5, alpha=0.85)
+        v = tau_vals[i]
+        ax3.text(x_c[i], max(dots) + 0.035, f"{v:.3f}", ha="center", fontsize=7.8, fontweight="bold", color=edges_c[i])
+
+    # P5 Bracket at u83
+    y_p5_83 = 1.24
+    ax3.plot([x_c[1], x_c[1], x_c[2], x_c[2]], [y_p5_83 - 0.02, y_p5_83, y_p5_83, y_p5_83 - 0.02], color="#B45309", lw=1.1, zorder=5)
+    ax3.text((x_c[1] + x_c[2]) / 2.0, y_p5_83 + 0.025, "P5: +0.035 (3/3 seeds)\nmean d \u2265 \u22122 SE", ha="center", fontsize=6.8, fontweight="bold", color="#78350F")
+
+    # P5 Bracket at u333
+    y_p5_333 = 1.38
+    ax3.plot([x_c[3], x_c[3], x_c[4], x_c[4]], [y_p5_333 - 0.02, y_p5_333, y_p5_333, y_p5_333 - 0.02], color="#B45309", lw=1.1, zorder=5)
+    ax3.text((x_c[3] + x_c[4]) / 2.0, y_p5_333 + 0.025, "P5: +0.033 (3/3 seeds)\nmean d \u2265 \u22122 SE", ha="center", fontsize=6.8, fontweight="bold", color="#78350F")
+
+    # Annotations on M1a Zero-Train slope
+    ax3.annotate(
+        "A2: Pure Inference Sharpening\n\u03c4 = 1.664 (3/3 seeds > 1.61)\nN2 loglik +24.4, \u03b4 = \u22120.17",
+        xy=(x_c[5], 1.73),
+        xytext=(x_c[5] - 0.45, 1.84),
+        ha="center",
+        fontsize=6.8,
+        fontweight="bold",
+        color="#047857",
+        arrowprops=dict(arrowstyle="->", color="#059669", lw=1.2),
+        bbox=dict(boxstyle="round,pad=0.25", facecolor="#ECFDF5", edgecolor="#34D399", alpha=0.96, linewidth=0.8),
+        zorder=6
+    )
+
+    # Note comparing M1 controlled slopes vs Standalone GRPO
+    note_grpo = (
+        "Controlled Slopes: \u03c4 in [1.07, 1.29]\n"
+        "(vs. Standalone GRPO from Base \u03c4 \u2248 4.14)\n"
+        "A3: \u03ba Branch +1 in 3/3 seeds at u83 & u333"
+    )
+    ax3.text(
+        0.55, 1.58, note_grpo,
+        fontsize=6.8, fontweight="bold", color="#4C1D95",
+        bbox=dict(boxstyle="round,pad=0.25", facecolor="#F5F3FF", edgecolor="#A78BFA", alpha=0.95, linewidth=0.7),
+        zorder=5
+    )
+
+    # Top Annotation Box in Panel C
+    anno_c = (
+        "P5 Holds (3/3 seeds at u83 & u333): Band raises slope \u03c4 even where raw Mean@16 ties (46.5% vs 46.7%).\n"
+        "A3 Holds (+1 on \u03ba in 3/3 seeds): within-run slope significantly higher under band (u83 +0.029, u333 +0.040).\n"
+        "P6 Holds (11/11 read rows): E[c_5 \u0394_j] > 0 strictly predicts positive slope gain (log \u03c4 > 0); A1/A2 modes kept."
+    )
+    ax3.text(0.5, 0.965, anno_c, transform=ax3.transAxes, ha="center", va="top", fontsize=7.2, color="#0F172A",
+             bbox=dict(boxstyle="round,pad=0.35", facecolor="#F8FAFC", edgecolor="#94A3B8", alpha=0.96, linewidth=0.8), zorder=6)
+
+    ax3.axhline(1.0, color="#64748B", linestyle="--", lw=1.0, zorder=2)
+    ax3.set_xticks(x_c)
+    ax3.set_xticklabels(cats_c, fontsize=7.8, fontweight="bold")
+    ax3.set_ylabel("IRT Person Slope \u03c4 (vs. SFT Start)", fontweight="bold")
+    ax3.set_ylim(0.85, 2.05)
+    ax3.set_xlim(-0.6, len(cats_c) - 0.3)
+    ax3.set_title("(C) IRT Diagnostics (Unit R2): Latent Slope Steepening", pad=12)
+    ax3.grid(True, axis="y", linestyle=":", alpha=0.4)
 
     save_fig(fig, "Fig07_m1_interventions.png")
 
