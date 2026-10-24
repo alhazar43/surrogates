@@ -448,67 +448,105 @@
 \end{frame}
 
 % ==============================================================================
-% SLIDE 13: NEXT STEPS I — LAWS OF DYNAMIC CAPABILITY & STATE-SPACE FORMULATION
+% SLIDE 13: NEXT STEPS I — LIMITATIONS OF STATIC ROLLOUTS & IDENTIFIABILITY LAWS
 % ==============================================================================
-\begin{frame}{Next Steps I: Laws of Dynamic Capability \& State-Space Formulation}
-  \vspace{-1.5mm}
+\begin{frame}{Next Steps I: Why Static Rollouts \& Naive Dynamic Models Fail}
+  \vspace{-2mm}
   \begin{columns}[T, onlytextwidth]
-    \begin{column}{0.45\textwidth}
+    \begin{column}{0.485\textwidth}
       \card{RedGRPO}{
-        \textbf{\color{RedGRPO}\small Why Dynamic Student Models Hit a Wall — And Why LLMs Solve It}\\[0.8mm]
-        \textbf{1. The $\mathcal{O}(\Delta^2)$ Sink Principle}:\\[0.4mm]
-        {\centering $\displaystyle \hat{\theta}_W - \theta_W^* \approx \mathcal{J}_{W\cdot o}^{-1}\textstyle\sum_t \mathbb{E}[p_t(1-p_t)\delta_t g_t]$\par}\vspace{0.4mm}
-        Fine-grained transitions enter 1-bit likelihoods at $\mathcal{O}(\Delta^2)$, acting as a \textbf{sink} for any unclosed $\mathcal{O}(1)$ nuisance (format, slope $\tau_t$, routing).\\[1mm]
-        \textbf{2. In-Span Absorption \& Dual-Role Collapse}:\\
-        Global drift absorbs $\mathrm{col}(\boldsymbol{A})$, leaving only $(\boldsymbol{I}-\boldsymbol{A}\boldsymbol{A}^+)\boldsymbol{W}$ identifiable. Sharing $\boldsymbol{a}_j$ for static covariance and dynamic updates collapses clusters into single-item memorization.\\[1mm]
-        \textbf{3. Why LLMs Are the Native Habitat}:\\
-        Unlike passive 1-bit human logs ($8\text{--}11$ events hitting van Trees bounds), \textbf{LLMs literally are gradient learners} with readable option logits $\boldsymbol{p}_{j,t}$ and forkable checkpoints for exact $\mathrm{do}(\text{train on } A)$.
+        \textbf{\color{RedGRPO}\scriptsize 1. Non-Ergodicity \& Chain-Rule Dynamic Discrimination}\\[0.5mm]
+        {\scriptsize Static rollout diagnostics ($\hat{p}_{j,0}, l_z, I_j^{\mathrm{3PL}}$) are single-checkpoint snapshots. Along policy trajectory $\boldsymbol{\phi}_t$ with velocity $\boldsymbol{u}_t = \dot{\boldsymbol{\phi}}_t$:}\\[0.6mm]
+        {\centering\scriptsize $\displaystyle a_j^{\mathrm{dyn}}(t) = \frac{\partial \mathrm{logit}\,P_j}{\partial t} = \underbrace{\nabla_{\boldsymbol{\phi}}\mathrm{logit}\,P_j^\top}_{\text{Jacobian }\boldsymbol{J}_j} \underbrace{\boldsymbol{u}_t}_{\text{Velocity}} \;\perp\; a_j^{\mathrm{pop}}$\par}\vspace{0.6mm}
+        {\scriptsize Orthogonal to static $a_j^{\mathrm{pop}}$ ($r=0.072$); logit evolution splits into \textbf{slope $\tau_t$} (Ferrando, 2007), \textbf{shift $\delta_t$}, and \textbf{item drift $\kappa_{t,j} = -\Delta b_{t,j}$} (Haebara, 1980).}
+      }
+      \vspace{1.2mm}
+      \card{AmberIRT}{
+        \textbf{\color{AmberIRT}\scriptsize 2. The $\mathcal{O}(\Delta^2)$ Second-Order Sink Principle}\\[0.5mm]
+        {\scriptsize By score expansion around the unperturbed trajectory:}\\[0.6mm]
+        {\centering\scriptsize $\displaystyle \hat{\theta}_W - \theta_W^* \approx \mathcal{J}_{W\cdot o}^{-1}\textstyle\sum_{t=1}^T \mathbb{E}\bigl[p_t(1-p_t)\,\delta_t\,g_t\bigr]$\par}\vspace{0.6mm}
+        {\scriptsize Fine-grained transitions enter 1-bit likelihoods at \textbf{second order $\mathcal{O}(\Delta^2)$}, acting as a \textbf{sink} for unclosed $\mathcal{O}(1)$ nuisances (format, $\tau_t$, baseline standing). Identification requires \textbf{closing all $\mathcal{O}(1)$ channels first} and training with \textbf{masked multi-step open-loop horizons ($H > 1$)}.}
       }
     \end{column}
-    \begin{column}{0.53\textwidth}
+    \begin{column}{0.485\textwidth}
       \card{PurpleIRT}{
-        \textbf{\color{PurpleIRT}\small Mathematical Formulation: Doob Innovations \& Teach--Measure Kernel}\\[0.6mm]
-        \textbf{1. Doob Martingale Decomposition (Epistemic $\neq$ Ontological)}:\\[0.4mm]
-        {\centering\scriptsize $\displaystyle \boldsymbol{z}_{t+1} = \boldsymbol{z}_t + \underbrace{\mathrm{Filter}(\boldsymbol{\Sigma}_t, \boldsymbol{a}_{e}, y_t - \bar{p}_t)}_{\text{Epistemic Martingale }(\mathbb{E}[\Delta\boldsymbol{z}]=\mathbf{0})} + \underbrace{u(\bar{p}_t)(1+\boldsymbol{s}_t)^{-\beta}\!\odot\boldsymbol{\psi}_{e}}_{\text{Ontological Transition}}$\par}\vspace{0.4mm}
-        Separates \textbf{belief tracking ($\boldsymbol{\Sigma}_t\downarrow$)} from \textbf{learning drift} ($\boldsymbol{s}_{t+1} = \boldsymbol{s}_t + \boldsymbol{g}_t^2$).\\[0.8mm]
-        \textbf{2. Interior Step-Size Isomorphism}:\\
-        $\mathrm{Cov}_{\pi_\phi}(r, \nabla_\phi \log \pi_\phi) = p_j(1-p_j)\boldsymbol{\psi}_j$ is isomorphic to $u(\bar{p}_t) = c\,(\bar{p}_t - c_0)_+^{k_1}(1-\bar{p}_t)^{k_2}$ ($k=(1,1)$ SGD; $k=(\tfrac{1}{2},\tfrac{1}{2})$ std-norm RL; $c_0=0.25 \to [2..6/8]$ 3PL band).\\[0.8mm]
-        \textbf{3. Asymmetric Teach--Measure Kernel \& Hankel Spectrum}:\\[0.4mm]
-        {\centering $\displaystyle K_{BA} = \boldsymbol{a}_B^\top \boldsymbol{\psi}_A \;\leftrightarrow\; \boldsymbol{J}_{\mathrm{eval}}\boldsymbol{J}_{\mathrm{train}}^\top, \qquad W_\ell[j,i] = \boldsymbol{H}\boldsymbol{F}^{\ell-1}\boldsymbol{G}$\par}\vspace{0.4mm}
-        Unties frozen \textbf{Read Key $\boldsymbol{a}_B$} from \textbf{Write Vector $\boldsymbol{\psi}_A$}; $\mathrm{rank}(\mathrm{Hankel}(W_\ell))$ extracts consolidation timescales.
+        \textbf{\color{PurpleIRT}\scriptsize 3. Subspace Absorption, Dual-Role \& Routing Laws}\\[0.5mm]
+        {\centering\scriptsize $\displaystyle \mathcal{P}_{\perp}(\boldsymbol{W}) = (\boldsymbol{I} - \boldsymbol{A}\boldsymbol{A}^+)\boldsymbol{W}, \qquad \boldsymbol{a}_j^{\mathrm{read}} \in \Delta^{M-1} \;\neq\; \boldsymbol{\psi}_j^{\mathrm{write}}$\par}\vspace{0.6mm}
+        {\scriptsize $\bullet$ \textbf{In-Span Absorption}: Unconstrained global drift $\boldsymbol{v}_t$ absorbs $\mathrm{col}(\boldsymbol{A})$; only $(\boldsymbol{I}-\boldsymbol{A}\boldsymbol{A}^+)\boldsymbol{W}$ is identifiable.\\[0.4mm]
+        $\bullet$ \textbf{Dual-Role Collapse}: Sharing one simplex vector $\boldsymbol{a}_j$ for static covariance and dynamic updates collapses skill clusters into single-item memorization ($\max_m a_{j,m}: 0.38 \to 0.64$).\\[0.4mm]
+        $\bullet$ \textbf{Closed-Loop Routing (Forssell \& Ljung, 1999)}: Omitting any adaptive routing dimension manufactures spurious transfer ($r = 0.607$).}
+      }
+      \vspace{1.2mm}
+      \card{BlueSFT}{
+        \textbf{\color{BlueSFT}\scriptsize 4. Why White-Box LLMs Solve Passive-Log Limits}\\[0.5mm]
+        {\scriptsize Passive 1-bit human logs ($8\text{--}11$ events/student) hit van Trees minimax bounds. \textbf{LLMs literally are gradient learners} with readable option distributions $\boldsymbol{p}_{j,t} \in \Delta^3$ and forkable checkpoints for exact $\mathrm{do}(\text{train on } A)$.}
       }
     \end{column}
   \end{columns}
 \end{frame}
 
 % ==============================================================================
-% SLIDE 14: NEXT STEPS II — CLOSED-LOOP MODEL ARCHITECTURE & THANK YOU
+% SLIDE 14: NEXT STEPS II — MATHEMATICAL DERIVATION OF THE STATE-SPACE MODEL
 % ==============================================================================
-\begin{frame}{Next Steps II: Closed-Loop Surrogate Architecture for LLM Training}
+\begin{frame}{Next Steps II: Mathematical Derivation of the Dynamic State-Space Model}
   \vspace{-2mm}
-  \begin{center}
-    \includegraphics[height=0.48\textheight, keepaspectratio]{figures/talk_Fig08_next_step_architecture.png}
-  \end{center}
-  \vspace{-3mm}
   \begin{columns}[T, onlytextwidth]
-    \begin{column}{0.48\textwidth}
+    \begin{column}{0.485\textwidth}
       \card{BlueSFT}{
-        \textbf{\color{BlueSFT}1. 1st-Order Closure, Prefix-Sum \& Convex Gates}\\
-        $\bullet$ Close $\mathcal{O}(1)$ nuisances ($\tau_t, \alpha_t$, distractors) first; learn frozen \textbf{Read Keys $\boldsymbol{a}_j$} from $\mathcal{O}(1)$ residual covariance ($r=0.81$) via \textbf{parallel prefix-sum sweeps}, stabilized by convex gates $h_{t,k} = (1-\lambda_k)h_{t-1,k} + \lambda_k c_{t,k}$.
+        \textbf{\color{BlueSFT}\scriptsize 1. Hierarchical Places \& Parallel Prefix-Sum ADF}\\[0.5mm]
+        {\centering\scriptsize $\displaystyle P_{j,t} = \sigma\!\Bigl(\tau_t\bigl(\underbrace{\boldsymbol{m}_j^\top \boldsymbol{v}_t}_{\text{Global }K} + \underbrace{l_j\boldsymbol{a}_j^\top \boldsymbol{z}_t}_{\text{Places }M} + \underbrace{\boldsymbol{u}_j^\top \boldsymbol{c}_t}_{\text{Plasticity}} - b_j\bigr) + r_\psi\Bigr)$\par}\vspace{0.5mm}
+        {\scriptsize $\bullet$ Learn frozen simplex \textbf{Read Keys $\boldsymbol{a}_j \in \Delta^{M-1}$} ($M=256$) from $\mathcal{O}(1)$ static residual covariance ($r=0.81$) via \textbf{Information-Form ADF} in $\mathcal{O}(MK+K^3)$ using \textbf{GPU parallel prefix-sum associative scans}.\\[0.4mm]
+        $\bullet$ \textbf{Zero-Init Residual} $r_\psi(\boldsymbol{h}_t, \boldsymbol{e}_j)\rvert_{t=0}\equiv 0$ + \textbf{Stochastic Scale-Orbit Gate} $\tilde{z}_k = \sigma((\rho_k+\nu_k)/T_z)$ prunes redundant dimensions.}
+      }
+      \vspace{1.2mm}
+      \card{PurpleIRT}{
+        \textbf{\color{PurpleIRT}\scriptsize 2. Doob Martingale Split \& Two Structural Zeros}\\[0.5mm]
+        {\centering\scriptsize $\displaystyle \Delta\boldsymbol{\kappa}_t = \underbrace{(\boldsymbol{\kappa}_{t+1}-\mathbb{E}[\boldsymbol{\kappa}_{t+1}\mid\mathcal{F}_t])}_{\text{Epistemic }\Delta\boldsymbol{z}_t:\;\mathbb{E}[\Delta\boldsymbol{z}_t]=\mathbf{0}} + \underbrace{(\mathbb{E}[\boldsymbol{\kappa}_{t+1}\mid\mathcal{F}_t]-\boldsymbol{\kappa}_t)}_{\text{Answer-Blind Drift }\Delta\boldsymbol{c}_t\text{ (No }y_t\text{)}}$\par}\vspace{0.5mm}
+        {\scriptsize $\bullet$ \textbf{Zero 1 (Epistemic)}: 3PL-aware filter updates \emph{only} standing $(\boldsymbol{v}_t, \boldsymbol{z}_t)$ and shrinks $\boldsymbol{\Sigma}_t$ from residual $(y_t - \bar{p}_t)$.\\[0.4mm]
+        $\bullet$ \textbf{Zero 2 (Ontological)}: Transition $\Delta\boldsymbol{c}_t$ is \textbf{answer-blind} (receives $\bar{p}_t, \boldsymbol{\psi}_{e_t}$, never $y_t$), blocking $\mathcal{O}(1)$ residual leakage.}
       }
     \end{column}
-    \begin{column}{0.48\textwidth}
+    \begin{column}{0.485\textwidth}
+      \card{AmberIRT}{
+        \textbf{\color{AmberIRT}\scriptsize 3. Interior Step Law, Preconditioner \& Convex Gate}\\[0.5mm]
+        {\scriptsize Policy-gradient covariance $\mathrm{Cov}_{\pi_\phi}(r, \nabla_\phi\log\pi_\phi) = p_j(1-p_j)\boldsymbol{\psi}_j$ maps to the \textbf{3PL Interior Plasticity Law}:}\\[0.5mm]
+        {\centering\scriptsize $\displaystyle u(\bar{p}_t) = c\,(\bar{p}_t - c_0)_+^{k_1}(1-\bar{p}_t)^{k_2}, \qquad \boldsymbol{s}_{t+1} = \boldsymbol{s}_t + \boldsymbol{g}_t^2$\par}\vspace{0.4mm}
+        {\centering\scriptsize $\displaystyle \boldsymbol{c}_{t+1} = (\boldsymbol{I} - \boldsymbol{\Lambda})\,\boldsymbol{c}_t + u(\bar{p}_t)\,(1+\boldsymbol{s}_t)^{-\beta} \odot \bigl(\boldsymbol{L}\boldsymbol{L}^\top \boldsymbol{\psi}_{e_t}\bigr)$\par}\vspace{0.5mm}
+        {\scriptsize $\bullet$ Unifies SGD ($k=(1,1)$), std-norm RL ($k=(\tfrac{1}{2},\tfrac{1}{2})$), and 3PL floor $c_0=0.25$ ($[2..6/8]$ band); $(1+\boldsymbol{s}_t)^{-\beta}$ tracks Adam saturation; convex gate $\boldsymbol{\Lambda} = \mathrm{diag}(\lambda_m) \in (0,1)^M$ prevents Jacobian explosion.}
+      }
+      \vspace{1.2mm}
       \card{GreenBase}{
-        \textbf{\color{GreenBase}2. Data Mixing via Teach--Measure Kernel $K_{BA}$}\\
-        $\bullet$ Use low-rank NTK surrogate $K_{BA} = \boldsymbol{a}_B^\top \boldsymbol{\psi}_A$ + 3PL law $u(\bar{p}_t)$ to route \textbf{SFT Support Shift} when $p_{\mathrm{top}} > p_{\mathrm{key}}$ and schedule \textbf{RL Consolidation} to maximize $\boldsymbol{a}_B^\top \boldsymbol{\psi}_A$ without easy-item inversions ($l_z \ge 0$).
+        \textbf{\color{GreenBase}\scriptsize 4. Asymmetric Teach--Measure Kernel \& Hankel SVD}\\[0.5mm]
+        {\centering\scriptsize $\displaystyle K_{BA} = \boldsymbol{a}_B^\top \boldsymbol{\psi}_A \leftrightarrow \boldsymbol{J}_{\mathrm{eval}}\boldsymbol{J}_{\mathrm{train}}^\top, \quad W_\ell[j,i] = \boldsymbol{H}\boldsymbol{F}^{\ell-1}\boldsymbol{G}$\par}\vspace{0.5mm}
+        {\scriptsize $\bullet$ Unties \textbf{Read Key $\boldsymbol{a}_B$} from \textbf{Write Vector $\boldsymbol{\psi}_A$}: diagonal $\boldsymbol{a}_A^\top\boldsymbol{\psi}_A$ measures consolidation; off-diagonal $\boldsymbol{a}_B^\top\boldsymbol{\psi}_A$ predicts transfer vs.\ interference.\\[0.4mm]
+        $\bullet$ $\mathrm{SVD}(\mathrm{Hankel}(W_1,\dots,W_m))$ extracts gauge-invariant update rank $r_T$ and memory timescales under $GL(K)$ rotations.}
       }
     \end{column}
   \end{columns}
+\end{frame}
 
-  \vspace{1mm}
+% ==============================================================================
+% SLIDE 15: NEXT STEPS III — DETAILED STATE-SPACE MODEL ARCHITECTURE
+% ==============================================================================
+\begin{frame}{Next Steps III: Internal Architecture of the Dynamic State-Space Cell}
+  \vspace{-1.5mm}
+  \begin{center}
+    \includegraphics[width=0.98\textwidth, height=0.84\textheight, keepaspectratio]{figures/talk_Fig09_detailed_state_space_diagram.png}
+  \end{center}
+\end{frame}
+
+% ==============================================================================
+% SLIDE 16: NEXT STEPS IV — CLOSED-LOOP TRAINING PIPELINE & THANK YOU
+% ==============================================================================
+\begin{frame}{Next Steps IV: Closed-Loop Curriculum \& Data-Mixing Pipeline}
+  \vspace{-1.5mm}
+  \begin{center}
+    \includegraphics[width=0.96\textwidth, height=0.75\textheight, keepaspectratio]{figures/talk_Fig08_next_step_architecture.png}
+  \end{center}
+  \vspace{-1.5mm}
   \begin{center}
     \begin{tikzpicture}
-      \node[draw=NavyHeader, fill=NavyHeader, text=white, rounded corners=4pt, inner xsep=18pt, inner ysep=3.5pt, font=\small\bfseries]
+      \node[draw=NavyHeader, fill=NavyHeader, text=white, rounded corners=4pt, inner xsep=20pt, inner ysep=3.5pt, font=\small\bfseries]
         {Thank You!};
     \end{tikzpicture}
   \end{center}
