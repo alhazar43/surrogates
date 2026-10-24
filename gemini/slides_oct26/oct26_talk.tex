@@ -85,21 +85,20 @@
   \begin{columns}[T, onlytextwidth]
     \begin{column}{0.48\textwidth}
       \card{RedGRPO}{
-        \textbf{\color{RedGRPO}\small Why Naive 1D Leaderboard 2PL Fails}\\[2mm]
-        \begin{itemize}\setlength{\itemsep}{4pt}
-          \item \textbf{Standard ML Shortcut}: Fit a 1D binary 2PL $(a_j, b_j)$ across 102 leaderboard LLMs and plug it into adaptive testing (\texttt{CAT}) or RL critics.
-          \item \textbf{Empirical Result}: Hits a $\mathbf{2.4\%}$ bias floor in \texttt{CAT} and yields $\mathbf{0\%}$ accuracy gain in RL training.
-          \item \textbf{Goal Today}: Diagnose \emph{where and why} it fails.
+        \textbf{\color{RedGRPO}\small The LLM Evaluation \& Post-Training Gap}\\[1.5mm]
+        \begin{itemize}\setlength{\itemsep}{3.5pt}
+          \item \textbf{Evaluation Gap}: Outcome RL (\texttt{GRPO}) beats \texttt{CoT-SFT} on single-draw $\mathrm{Pass@1}$ ($\mathbf{47.9\%}$ vs.\ $\mathbf{43.9\%}$), yet collapses on $\mathrm{Pass@16}$ ($\mathbf{65.6\%}$ vs.\ $\mathbf{96.6\%}$) and gains $\mathbf{0\%}$ on Majority Vote ($\mathrm{Maj@16} = \mathbf{47.5\%}$).
+          \item \textbf{Naive 2PL Readout Fails}: Plugging 102-LLM 2PL $(a_j, b_j)$ into adaptive testing (\texttt{CAT}) hits a $\mathbf{2.4\%}$ bias floor and adds $\mathbf{0\%}$ gain in RL critics.
         \end{itemize}
       }
     \end{column}
     \begin{column}{0.48\textwidth}
       \card{BlueSFT}{
-        \textbf{\color{BlueSFT}\small Pass-Rate Analysis Under an IRT Perspective}\\[2mm]
-        \begin{itemize}\setlength{\itemsep}{4pt}
-          \item \textbf{1. Multidimensionality}: Leaderboard $a_j$ measures cross-model memorization ($5\times$ skew), not reasoning updates.
-          \item \textbf{2. Scale vs.\ Ability}: RL sharpens temperature ($\tau \leftrightarrow 1/T$) rather than shifting ability $\Delta\theta$ ($\mathrm{Maj@16}$ flat).
-          \item \textbf{3. Attractive Distractors}: Binary $\{0,1\}$ scoring is blind to wrong modal distractors below $c = 25\%$ chance.
+        \textbf{\color{BlueSFT}\small What Item-Level Rollout Diagnostics Reveal}\\[1.5mm]
+        \begin{itemize}\setlength{\itemsep}{3.5pt}
+          \item \textbf{1. Standing $\neq$ Plasticity}: Cross-model $a_j$ skews $5\times$ toward memorization and is orthogonal to RL updates ($\mathbf{r = 0.072}$).
+          \item \textbf{2. Consolidation vs.\ Support Shift}: RL sharpens slope ($\tau=1.85, l_z=\mathbf{+7.55}$); SFT shifts support but causes easy-item inversions ($l_z=\mathbf{-16.99}$).
+          \item \textbf{3. Guessing \& Distractors}: $\mathbf{53.9\%}$ of active RL prompts sit at $I_j^{\mathrm{3PL}}=0$ ($\le 25\%$); wrong modal distractors dominate $\mathbf{51.4\%}$ of items.
         \end{itemize}
       }
     \end{column}
@@ -109,7 +108,7 @@
 % ==============================================================================
 % SLIDE 2: BACKGROUND — LLM POST-TRAINING & EVALUATION
 % ==============================================================================
-\begin{frame}{Background: LLM Post-Training \& Evaluation}
+\begin{frame}{Background: LLM Post-Training \& Multi-Draw Evaluation}
   \vspace{-1.5mm}
   \begin{center}
     \includegraphics[height=0.47\textheight, keepaspectratio]{figures/talk_Fig00A_llm_training_tikz.pdf}
@@ -118,24 +117,24 @@
   \begin{columns}[T, onlytextwidth]
     \begin{column}{0.32\textwidth}
       \card{BlueSFT}{
-        \textbf{\color{BlueSFT}\texttt{CoT-SFT} (Supervised)}\\
-        Trains on verified 70B teacher traces $y_j^*$.\\
-        $\rightarrow$ \textbf{Imports external knowledge} even when Base pass rate $p_j = 0$.
+        \textbf{\color{BlueSFT}\texttt{CoT-SFT} (Teacher Trace)}\\
+        Minimizes $-\log \pi_\phi(y_j^* \mid x_j)$ on verified 70B teacher traces.\\
+        $\rightarrow$ \textbf{Overwrites wrong modal beliefs} even when Base pass rate $p_j = 0$.
       }
     \end{column}
     \begin{column}{0.33\textwidth}
       \card{RedGRPO}{
-        \textbf{\color{RedGRPO}\texttt{GRPO} (Outcome RL)}\\
-        Samples $G=5$ self-rollouts; rewards binary correctness $r_{j,g}\in\{0,1\}$.\\
-        $\rightarrow$ \textbf{Zero gradient} if all $G$ rollouts fail or succeed ($\hat{\sigma}_j = 0$).
+        \textbf{\color{RedGRPO}\texttt{GRPO} (Binary Outcome RL)}\\
+        Rewards $\{0,1\}$ correctness across $G=5$ self-rollouts ($\hat{\sigma}_j = \sqrt{p_j(1-p_j)}$).\\
+        $\rightarrow$ \textbf{Blind to lucky guesses} at $\le 25\%$ and \textbf{which wrong distractor} is modal.
       }
     \end{column}
     \begin{column}{0.32\textwidth}
       \card{GreenBase}{
-        \textbf{\color{GreenBase}Test Metrics ($K=16$ draws)}\\
+        \textbf{\color{GreenBase}Rollout Readouts ($K=16$ draws)}\\
         $\bullet$ $\mathbf{Pass@1}$: Mean single-draw accuracy.\\
-        $\bullet$ $\mathbf{Pass@16}$: At least 1 correct in 16 draws.\\
-        $\bullet$ $\mathbf{Maj@16}$: Majority-vote accuracy.
+        $\bullet$ $\mathbf{Pass@16}$: Coverage across 16 draws.\\
+        $\bullet$ $\mathbf{Maj@16}$: Whether the \emph{modal option} is the correct key ($p_{\mathrm{key}} = p_{\mathrm{top}}$).
       }
     \end{column}
   \end{columns}
@@ -144,7 +143,7 @@
 % ==============================================================================
 % SLIDE 3: BACKGROUND — HOW IRT ENTERS LLM PIPELINES
 % ==============================================================================
-\begin{frame}{Background: How IRT Enters LLM Pipelines}
+\begin{frame}{Background: How Static 1D 2PL Enters Evaluation \& RL}
   \vspace{-1.5mm}
   \begin{center}
     \includegraphics[height=0.48\textheight, keepaspectratio]{figures/talk_Fig00B_irt_entry_tikz.pdf}
@@ -154,14 +153,14 @@
     \begin{column}{0.48\textwidth}
       \card{BlueSFT}{
         \textbf{\color{BlueSFT}Entry 1: Adaptive Evaluation (\texttt{CAT})}\\
-        Calibrate 2PL $(a_j, b_j)$ on $M=102$ leaderboard LLMs (Maia Polo et al., 2024; Kipnis et al., 2025).\\
-        $\rightarrow$ Select high-information items $I_j(\hat{\theta}) = a_j^2 \hat{p}_j(1-\hat{p}_j)$ to estimate score from $n \ll N$ items.
+        Calibrate 1D binary 2PL $(a_j, b_j)$ across $M=102$ leaderboard LLMs (Maia Polo et al., 2024; Kipnis et al., 2025).\\
+        $\rightarrow$ Select items maximizing $I_j(\hat{\theta}) = a_j^2 \hat{p}_j(1-\hat{p}_j)$ to estimate model ability from $n \ll N$ items.
       }
     \end{column}
     \begin{column}{0.48\textwidth}
       \card{PurpleIRT}{
         \textbf{\color{PurpleIRT}Entry 2: Online 2PL Critics in RL}\\
-        Replace $G=5$ group rollouts with a single rollout ($G=1$) using IRT expectation $\hat{p}_j(\theta_t) = \sigma(a_j(\theta_t - b_j))$:\\[1mm]
+        Replace $G=5$ group rollouts with a single rollout ($G=1$) using static 2PL expectation $\hat{p}_j(\theta_t) = \sigma(a_j(\theta_t - b_j))$:\\[1mm]
         {\centering $\hat{A}_j = 2\,a_j^\gamma\bigl(r_j - \hat{p}_j(\theta_t)\bigr), \qquad \gamma \in \{0, 1\}$\par}
       }
     \end{column}
@@ -171,7 +170,7 @@
 % ==============================================================================
 % SLIDE 4: TERMINOLOGY BRIDGE — LLM VS. IRT
 % ==============================================================================
-\begin{frame}{Terminology Bridge: Rollout Diagnostics Under an IRT Lens}
+\begin{frame}{Terminology Bridge: LLM Rollouts \& Psychometric Constructs}
   \vspace{0.5mm}
   \renewcommand{\arraystretch}{1.42}
   \setlength{\tabcolsep}{3.8pt}
@@ -212,33 +211,32 @@
 
   \vspace{3mm}
   \card{NavyHeader}{
-    \textbf{\color{NavyHeader}Diagnostic Strategy:} Without any retraining, item-level rollout statistics ($p_{\mathrm{base},j}$, $p_{\mathrm{top},j}$, $l_z$, $I_j^{\mathrm{3PL}}$) let us measure \emph{exactly why} naive 1D 2PL fails in RL and why SFT outperforms RL on hard items.
+    \textbf{\color{NavyHeader}Diagnostic Strategy:} Without any retraining, item-level rollout statistics ($p_{\mathrm{base},j}$, $p_{\mathrm{top},j}$, $l_z$, $I_j^{\mathrm{3PL}}$) expose \emph{why} single-draw evaluation and static 1D 2PL fail—and why SFT and RL play complementary roles.
   }
 \end{frame}
 
 % ==============================================================================
 % SLIDE 5: THE EMPIRICAL PUZZLE — PASS@1 VS. PASS@K
 % ==============================================================================
-\begin{frame}{The Empirical Puzzle: Pass@1 vs.\ Pass@k}
+\begin{frame}{The Evaluation Paradox: Single-Draw Pass@1 vs.\ Multi-Draw Coverage}
   \begin{columns}[T, onlytextwidth]
     \begin{column}{0.58\textwidth}
       \vspace{-1mm}
       \includegraphics[width=\linewidth]{figures/talk_Fig01_puzzle_and_modal_ceiling.png}
     \end{column}
     \begin{column}{0.40\textwidth}
-      \vspace{2mm}
+      \vspace{1.5mm}
       \card{RedGRPO}{
-        \textbf{\color{RedGRPO}1. Single-Draw $\mathrm{Pass@1}$ ($k=1$)}\\
-        $\bullet$ \texttt{Base}: $\mathbf{38.2\%}$\\
-        $\bullet$ \texttt{CoT-SFT}: $\mathbf{43.9\%}$ ($+5.7\%$)\\
-        $\bullet$ \texttt{GRPO (RL)}: $\mathbf{47.9\%}$ ($+9.7\%$, wins at $k=1$)
+        \textbf{\color{RedGRPO}1. Single-Draw $\mathrm{Pass@1}$ Illusion ($k=1$)}\\
+        $\bullet$ \texttt{Base}: $\mathbf{38.2\%}$ \quad|\quad \texttt{CoT-SFT}: $\mathbf{43.9\%}$\\
+        $\bullet$ \texttt{GRPO (RL)}: $\mathbf{47.9\%}$ (appears $+4.0\%$ ahead of SFT at $k=1$).
       }
-      \vspace{2.5mm}
+      \vspace{2mm}
       \card{BlueSFT}{
-        \textbf{\color{BlueSFT}2. Multi-Draw $\mathrm{Pass@16}$ \& $\mathrm{Maj@16}$}\\
-        $\bullet$ \textbf{$\mathrm{Pass@16}$ collapses under RL}: \texttt{GRPO} drops to $\mathbf{65.6\%}$ vs.\ \texttt{Base} $\mathbf{93.0\%}$ and \texttt{CoT-SFT} $\mathbf{96.6\%}$.\\
-        $\bullet$ \textbf{Majority Vote ($\mathrm{Maj@16}$) is unchanged by RL}: \texttt{GRPO} ($\mathbf{47.5\%}$) $=$ \texttt{Base} ($\mathbf{47.6\%}$), whereas \texttt{CoT-SFT} reaches $\mathbf{54.6\%}$.\\
-        $\rightarrow$ \textbf{Intuition}: \texttt{GRPO} learns \textbf{0\% net new modal answers}; it only concentrates probability onto existing Base modes.
+        \textbf{\color{BlueSFT}2. Reversal on $\mathrm{Pass@16}$ \& $\mathrm{Maj@16}$}\\
+        $\bullet$ \textbf{Coverage collapse}: \texttt{GRPO} drops to $\mathbf{65.6\%}$ vs.\ \texttt{Base} $\mathbf{93.0\%}$ and \texttt{CoT-SFT} $\mathbf{96.6\%}$.\\
+        $\bullet$ \textbf{Zero modal gain under RL}: \texttt{GRPO} $\mathrm{Maj@16}$ ($\mathbf{47.5\%}$) $=$ \texttt{Base} ($\mathbf{47.6\%}$), whereas \texttt{CoT-SFT} reaches $\mathbf{54.6\%}$.\\
+        $\rightarrow$ \texttt{GRPO} only sharpens existing Base modes; \texttt{CoT-SFT} flips modal answers to the correct key.
       }
     \end{column}
   \end{columns}
@@ -247,7 +245,7 @@
 % ==============================================================================
 % SLIDE 6: IRT IN EVALUATION — ADAPTIVE TESTING & DOMAIN BIAS
 % ==============================================================================
-\begin{frame}{IRT in Evaluation: Adaptive Testing \& Domain Bias}
+\begin{frame}{Evaluation Gap: Adaptive Testing \& Memory vs.\ Reasoning Skew}
   \vspace{-1.5mm}
   \begin{center}
     \includegraphics[height=0.50\textheight, keepaspectratio]{figures/talk_Fig02_eval_cat_and_2d_domains.png}
@@ -256,9 +254,9 @@
   \begin{columns}[T, onlytextwidth]
     \begin{column}{0.48\textwidth}
       \card{RedGRPO}{
-        \textbf{\color{RedGRPO}(A) Adaptive \texttt{CAT} Hits a $2.4\%$ Error Floor}\\
+        \textbf{\color{RedGRPO}(A) Adaptive \texttt{CAT} Hits a $2.4\%$ Bias Floor}\\
         $\bullet$ Simple random sampling reaches $\mathbf{0.8\%}$ RMSE at full bank.\\
-        $\bullet$ 1D IRT scoring \& \texttt{CAT} plateau at $\mathbf{2.4\%}$ error because post-trained models violate 1D invariance.
+        $\bullet$ 1D IRT scoring \& \texttt{CAT} plateau at $\mathbf{2.4\%}$ error because post-trained models violate 1D item invariance.
       }
     \end{column}
     \begin{column}{0.48\textwidth}
@@ -274,7 +272,7 @@
 % ==============================================================================
 % SLIDE 7: IRT IN RL TRAINING — ONLINE 2PL CRITICS
 % ==============================================================================
-\begin{frame}{IRT in RL Training: Online 2PL Critics}
+\begin{frame}{Training Gap: Why Static 2PL RL Critics Saturate}
   \vspace{-1.5mm}
   \begin{center}
     \includegraphics[height=0.50\textheight, keepaspectratio]{figures/talk_Fig03_rl_critics_and_eq_divergence.png}
@@ -285,7 +283,7 @@
       \card{AmberIRT}{
         \textbf{\color{AmberIRT}(A) All 4 Critics Saturate at $\sim 47.5\%$ $\mathrm{Pass@1}$}\\
         $\bullet$ Standard \texttt{GRPO} ($G=5$) and single-rollout ($G=1$) 2PL critics all converge to $\mathbf{46.8\%\text{--}47.5\%}$.\\
-        $\bullet$ Online 2PL baseline cuts sampling cost $5\times$, but $a_j$-weighting adds \textbf{zero accuracy gain}.
+        $\bullet$ Online 2PL baseline cuts sampling cost $5\times$, but cross-model $a_j$-weighting adds \textbf{zero accuracy gain}.
       }
     \end{column}
     \begin{column}{0.48\textwidth}
@@ -299,9 +297,9 @@
 \end{frame}
 
 % ==============================================================================
-% SLIDE 8: WHY POPULATION PARAMETERS FAIL IN TRAINING
+% SLIDE 8: COORDINATE SHIFT — STANDING VS. BASE PASS RATE
 % ==============================================================================
-\begin{frame}{Pass-Rate Analysis: Coordinate Frame \& Person-Fit ($l_z$)}
+\begin{frame}{Coordinate Shift: Cross-Model Standing vs.\ Base Pass Rate}
   \begin{columns}[T, onlytextwidth]
     \begin{column}{0.56\textwidth}
       \vspace{-1.5mm}
@@ -310,9 +308,9 @@
     \begin{column}{0.42\textwidth}
       \vspace{0.5mm}
       \card{RedGRPO}{
-        \textbf{\color{RedGRPO}1. Leaderboard 1D Scale $\neq$ Learning Direction (Panel A)}\\
+        \textbf{\color{RedGRPO}1. Why Static 2PL Critics Fail (Panel A)}\\
         Ordering item gains $\Delta p_j$ by 102-LLM difficulty $b_j$ gives a flat cloud ($\mathbf{R^2 = 0.08}$).\\
-        $\rightarrow$ Policy updates are orthogonal to cross-model $a_j$ ($\mathbf{r = 0.072}$): \textbf{measuring standing $\neq$ receiving change}.
+        $\rightarrow$ Gradient updates are orthogonal to cross-model $a_j$ ($\mathbf{r = 0.072}$): \textbf{measuring standing $\neq$ receiving change}.
       }
       \vspace{2mm}
       \card{BlueSFT}{
@@ -326,9 +324,9 @@
 \end{frame}
 
 % ==============================================================================
-% SLIDE 9: MECHANISM — 3PL LUCKY-GUESS TRAP & NOMINAL DISTRACTOR SPLIT
+% SLIDE 9: TRAINING GAP — 3PL LUCKY-GUESS TRAP & ATTRACTIVE DISTRACTORS
 % ==============================================================================
-\begin{frame}{Psychometric Gap: 3PL Guessing Trap \& Nominal Distractors}
+\begin{frame}{Training Gap: Lucky-Guess Trap \& Attractive Distractors}
   \vspace{-1.5mm}
   \begin{center}
     \includegraphics[height=0.50\textheight, keepaspectratio]{figures/talk_Fig05_prf_slope_and_distractor_pivot.png}
@@ -355,7 +353,7 @@
 % ==============================================================================
 % SLIDE 10: DIAGNOSTICS — RESIDUALS & OPTION ORDER
 % ==============================================================================
-\begin{frame}{Diagnostics: Cross-Seed Residuals \& Option Order}
+\begin{frame}{Downstream Symptoms: Cross-Seed Residuals \& Option-Order Bias}
   \vspace{-1.5mm}
   \begin{center}
     \includegraphics[height=0.50\textheight, keepaspectratio]{figures/talk_Fig06_local_independence_and_order_dif.png}
@@ -366,7 +364,7 @@
       \card{PurpleIRT}{
         \textbf{\color{PurpleIRT}(A) Cross-Seed Residual Correlation ($\mathbf{r = 0.81}$)}\\
         After removing the 1D curve, item residuals across random seeds remain highly correlated ($\mathbf{r = 0.81}$ in RL vs.\ $0.19$ noise floor).\\
-        $\rightarrow$ Item-level learning is deterministic and multi-dimensional, set by Base initialization.
+        $\rightarrow$ Item-level learning is deterministic and multi-dimensional, locked to Base initialization.
       }
     \end{column}
     \begin{column}{0.48\textwidth}
@@ -383,7 +381,7 @@
 % ==============================================================================
 % SLIDE 11: IMPLICATIONS — TEMPERATURE & INFORMATIVE ROLLOUTS
 % ==============================================================================
-\begin{frame}{Implications: Temperature, Two-Stage \texttt{SFT$\to$RL} \& 3PL Band}
+\begin{frame}{Immediate Interventions: Temperature, Two-Stage \texttt{SFT$\to$RL} \& 3PL Band}
   \vspace{-1.5mm}
   \begin{center}
     \includegraphics[height=0.50\textheight, keepaspectratio]{figures/talk_Fig07_predictions_and_fisher_band.png}
@@ -412,82 +410,105 @@
 \end{frame}
 
 % ==============================================================================
-% SLIDE 12: SUMMARY TABLE
+% SLIDE 12: SUMMARY — 3-PILLAR SYNTHESIS (NO STALE TABLE)
 % ==============================================================================
-\begin{frame}{Summary: Why Naive 1D Binary 2PL Fails \& What Diagnostics Show}
-  \vspace{-0.5mm}
-  \renewcommand{\arraystretch}{1.26}
-  \setlength{\tabcolsep}{4.5pt}
-  \scriptsize
-  \begin{tabular}{>{\raggedright\arraybackslash\leavevmode\bfseries\color{NavyHeader}}p{2.2cm} >{\raggedright\arraybackslash}p{3.1cm} >{\raggedright\arraybackslash\leavevmode\color{RedGRPO}\bfseries}p{3.8cm} >{\raggedright\arraybackslash}p{4.1cm}}
-    \toprule
-    \textbf{Failure Mode} & \textbf{Naive 1D 2PL Assumption} & \textbf{IRT Rollout Diagnostic Finding} & \textbf{\color{BlueSFT}Psychometric Requirement} \\
-    \midrule
-    1. Memory vs.\ Reasoning &
-    1D $\theta$ captures all capability across subjects. &
-    $a_j$ skews $\mathbf{5\times}$ toward memory ($1.45$) vs.\ math ($0.28$) $\rightarrow$ $\mathbf{2.4\%}$ \texttt{CAT} floor. &
-    \textbf{Multidimensional IRT (MIRT)} separating memory vs.\ reasoning. \\
-    \rowcolor{LightBg}
-    2. Measure vs.\ Transition &
-    Cross-model $a_j$ predicts within-model RL updates. &
-    All 4 critics tie at $\mathbf{\sim 47.5\%}$ $\mathrm{Pass@1}$; updates orthogonal to $a_j$ ($\mathbf{r=0.072}$). &
-    \textbf{Decouple Measurement $a_j$ from Transition $\psi_j$ (\texttt{DUET})}. \\
-    3. Slope $\tau$ vs.\ Fit $l_z$ &
-    Rising $\mathrm{Pass@1}$ ($38.2\% \to 47.9\%$) means higher $\theta$. &
-    RL sharpens $\tau=1.85$ ($l_z=\mathbf{+7.55}$, $0\%$ new modes); SFT causes inversions ($l_z=\mathbf{-16.99}$). &
-    \textbf{Separate Location ($\theta_t$), Slope ($\tau_t \leftrightarrow 1/T$) \& Person-Fit ($l_z$)}. \\
-    \rowcolor{LightBg}
-    4. 3PL \& Distractors &
-    Variance at $\le 25\%$ is informative; errors are uniform. &
-    $\mathbf{53.9\%}$ of GRPO prompts sit at $I_j^{\mathrm{3PL}}=0$; wrong mode dominates $\mathbf{51.4\%}$ of bank. &
-    \textbf{3PL Guessing Floor ($c$) + Nominal Response Model (NRM)}. \\
-    5. Residual Structure &
-    Residuals are i.i.d.\ noise after 1D conditioning. &
-    Cross-seed residuals correlate at $\mathbf{r=0.81}$; $[2..6/8]$ band cuts dead rollouts $\mathbf{34\%\to 23\%}$. &
-    \textbf{Longitudinal State-Space Calibration} along checkpoints. \\
-    \bottomrule
-  \end{tabular}
-\end{frame}
-
-% ==============================================================================
-% SLIDE 13: NEXT STEPS — THEORETICAL BASE & PROPOSING DUET
-% ==============================================================================
-\begin{frame}{Next Steps: Theoretical Base \& Proposing \texttt{DUET}}
-  \vspace{-1mm}
+\begin{frame}{Summary: LLM Evaluation/Training Gaps \& What Our Diagnostics Bring}
+  \vspace{0.5mm}
   \begin{columns}[T, onlytextwidth]
     \begin{column}{0.32\textwidth}
-      \card{BlueSFT}{
-        \textbf{\color{BlueSFT}\small 1. Theoretical Base}\\[1.5mm]
-        Build a psychometric model for LLMs that incorporates all 3 missing components:\\[1mm]
-        $\bullet$ \textbf{Multidimensional State} $\boldsymbol{\theta}_t \in \mathbb{R}^D$ (memory vs.\ reasoning).\\
-        $\bullet$ \textbf{Dispersion Separation}: Decouple location $\boldsymbol{\theta}_t$ from policy temperature $\tau_t \leftrightarrow 1/T$.\\
-        $\bullet$ \textbf{Nominal Distractor IRT}: Model $(p_A, p_B, p_C, p_D)$ to avoid sharpening wrong distractors below $25\%$.
+      \card{RedGRPO}{
+        \textbf{\color{RedGRPO}\small 1. Existing Gaps in LLM Eval \& Training}\\[2mm]
+        $\bullet$ \textbf{Single-Draw Evaluation Illusion}:\\
+        $\mathrm{Pass@1}$ confounds policy sharpening ($\tau \leftrightarrow 1/T$) with knowledge growth ($\Delta\theta$), masking RL's $\mathbf{0\%}$ modal gain ($\mathrm{Maj@16}=47.5\%$) and $\mathbf{-23.6\%}$ coverage collapse.\\[2mm]
+        $\bullet$ \textbf{Binary RL Training Blindness}:\\
+        Outcome RL (\texttt{GRPO}) wastes $\mathbf{53.9\%}$ of active updates in the $\le 25\%$ lucky-guess zone ($I_j^{\mathrm{3PL}}=0$) and locks in wrong modal distractors ($p_{\mathrm{top}} > p_{\mathrm{key}}$ on $\mathbf{51.4\%}$ of items, $\mathbf{-4.9\%}$).
       }
     \end{column}
     \begin{column}{0.33\textwidth}
-      \card{PurpleIRT}{
-        \textbf{\color{PurpleIRT}\small 2. Proposing \texttt{DUET}}\\[1.5mm]
-        \textbf{Decoupled Estimation \& Transition} state-space framework:\\[1mm]
-        $\bullet$ \textbf{Observation ($a_j$)}: Filters static belief $z_t \sim \mathcal{N}(\hat{z}_t, \Sigma_t)$.\\
-        $\bullet$ \textbf{Transition ($\psi_j, b_j$)}: Untied practice vector $\psi_j$ + separate receiving subspace ($a_j^\top z_t + b_j^\top w_t$).\\
-        $\rightarrow$ Prevents cross-sectional scale $\bar{a}$ from collapsing within-model learning updates.
+      \card{AmberIRT}{
+        \textbf{\color{AmberIRT}\small 2. Why Naive 1D 2PL Readouts Cannot Fix Them}\\[2mm]
+        $\bullet$ \textbf{Domain Skew in Evaluation}:\\
+        Cross-model 102-LLM $a_j$ weights memorization $5\times$ higher than math ($1.45$ vs.\ $0.28$), causing a $\mathbf{2.4\%}$ \texttt{CAT} error floor.\\[2mm]
+        $\bullet$ \textbf{Standing $\neq$ Plasticity in RL}:\\
+        Cross-model $a_j$ is orthogonal to within-model gradient updates ($\mathbf{r=0.072}$); all 4 RL critics saturate at $\mathbf{\sim 47.5\%}$.\\[2mm]
+        $\bullet$ \textbf{Binary $\{0,1\}$ Misspecification}:\\
+        Standard 2PL ignores guessing ($c=25\%$), attractive distractors, and policy temperature $\tau$.
       }
     \end{column}
     \begin{column}{0.32\textwidth}
-      \card{AmberIRT}{
-        \textbf{\color{AmberIRT}\small 3. Prior \texttt{PLMS} Lessons \texttt{[Placeholder]}}\\[1.5mm]
-        Design guards from earlier \texttt{PLMS} negative results:\\[1mm]
-        $\bullet$ \textbf{Martingale Filter (\texttt{M1b})}: Zero drift on no-change trajectories.\\
-        $\bullet$ \textbf{Outcome-Blind Step (\texttt{M1a})}: Exclude realized $y_t$ from transition step size $u_t$.\\
-        $\bullet$ \textbf{\texttt{[Placeholder: Specific PLMS Failure Cases \& Null Controls]}}: Routing deconfounding \& $\mathcal{O}(\Delta^2)$ SNR bounds.
+      \card{BlueSFT}{
+        \textbf{\color{BlueSFT}\small 3. What Our Rollout Diagnostics Bring}\\[2mm]
+        $\bullet$ \textbf{Zero-Retraining Decomposition}:\\
+        Separates \textbf{RL Guttman Consolidation} ($\tau=1.85, l_z=\mathbf{+7.55}$, $0\%$ easy misses) from \textbf{SFT Distractor Overthrow} ($\mathbf{56.2\%}$ mode flips, $\mathbf{+11.7\%}$ on strong misconceptions, $l_z=\mathbf{-16.99}$).\\[2mm]
+        $\bullet$ \textbf{Actionable Gains}:\\
+        Enables \texttt{CoT-SFT @ T=0.2} ($\mathbf{47.5\%}$ $\mathrm{Pass@1}$ in 0 RL steps), \texttt{Two-Stage SFT$\to$RL} ($\mathbf{94.9\%}$ $\mathrm{Pass@16}$), and \texttt{3PL Band $[2..6/8]$} ($\mathbf{34\%\to 23\%}$ dead rollouts).
+      }
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ==============================================================================
+% SLIDE 13: NEXT STEPS I — LIMITATIONS OF ROLLOUT READING & MATH FORMULATION
+% ==============================================================================
+\begin{frame}{Next Steps I: From Post-Hoc Diagnostics to State-Space Modeling}
+  \vspace{-1mm}
+  \begin{columns}[T, onlytextwidth]
+    \begin{column}{0.46\textwidth}
+      \card{RedGRPO}{
+        \textbf{\color{RedGRPO}\small Why Post-Hoc Rollout Reading Is Not Enough}\\[1.2mm]
+        Turning offline diagnostics into an online training critic requires solving 3 failure modes of standard dynamic student models:\\[1.2mm]
+        \textbf{1. Coupled Measurement \& Transition}:\\
+        Using the same item vector $\boldsymbol{a}_j$ to measure standing and drive state updates lets cross-sectional scale $\bar{\boldsymbol{a}}$ collapse within-model learning directions ($r = 0.072$).\\[1.2mm]
+        \textbf{2. Outcome-Driven Drift (Martingale Violation)}:
+        Updating latent state or step size from noisy binary rewards $r_t \in \{0,1\}$ confounds \emph{adaptive routing} with \emph{true learning} ($\mathbb{E}[\Delta\hat{\boldsymbol{z}}_t \mid \Delta\phi=0] \neq \mathbf{0}$) and degrades at $\mathcal{O}(\Delta^2)$ SNR.\\[1.2mm]
+        \textbf{3. Temperature \& Distractor Confounding}:\\
+        Treating dispersion sharpening ($\tau_t$) or lucky guesses ($p_j \le c$) as ability shifts corrupts credit assignment.
+      }
+    \end{column}
+    \begin{column}{0.52\textwidth}
+      \card{PurpleIRT}{
+        \textbf{\color{PurpleIRT}\small Decoupled State-Space Formulation for LLM Training}\\[1.2mm]
+        \textbf{1. Nominal / 3PL Observation Filter ($\boldsymbol{z}_t \in \mathbb{R}^D$, Slope $\tau_t$)}:\\[1mm]
+        {\centering $\displaystyle P_{j,m}(\boldsymbol{z}_t, \tau_t) = \frac{\exp\!\bigl(\tau_t(\boldsymbol{a}_{j,m}^\top \boldsymbol{z}_t - b_{j,m})\bigr)}{\sum_{m'=1}^M \exp\!\bigl(\tau_t(\boldsymbol{a}_{j,m'}^\top \boldsymbol{z}_t - b_{j,m'})\bigr)}$\par}\vspace{1.2mm}
+        $\bullet$ Separates competence $\boldsymbol{z}_t$, dispersion $\tau_t \leftrightarrow 1/T$, and distractor attraction $(\boldsymbol{a}_{j,m}, b_{j,m})$.\\
+        $\bullet$ \textbf{Martingale Guard}: $\mathbb{E}[\Delta\hat{\boldsymbol{z}}_t \mid \Delta\phi=0] = \mathbf{0}$.\\[1.8mm]
+        \textbf{2. Decoupled Plasticity \& Outcome-Blind Transition}:\\[1mm]
+        {\centering $\displaystyle \ell_{j,t} = \underbrace{\boldsymbol{a}_j^\top \boldsymbol{z}_t}_{\text{standing}} + \underbrace{\boldsymbol{u}_j^\top \boldsymbol{w}_t}_{\text{plasticity}} - b_j, \quad \boldsymbol{w}_{t+1} = \boldsymbol{w}_t + \eta_t(\mathcal{B}_t)\,\boldsymbol{\psi}_j$\par}\vspace{1.2mm}
+        $\bullet$ \textbf{Untied Subspace ($\boldsymbol{u}_j, \boldsymbol{\psi}_j \perp \boldsymbol{a}_j$)} decouples standing from gradient sensitivity.\\
+        $\bullet$ \textbf{Outcome-Blind Step $\eta_t(\mathcal{B}_t)$} depends only on scheduled batch $\mathcal{B}_t$, eliminating routing drift.
+      }
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ==============================================================================
+% SLIDE 14: NEXT STEPS II — CLOSED-LOOP MODEL ARCHITECTURE & THANK YOU
+% ==============================================================================
+\begin{frame}{Next Steps II: Closed-Loop Psychometric Training Architecture}
+  \vspace{-1.5mm}
+  \begin{center}
+    \includegraphics[height=0.52\textheight, keepaspectratio]{figures/talk_Fig08_next_step_architecture.png}
+  \end{center}
+  \vspace{-2.5mm}
+  \begin{columns}[T, onlytextwidth]
+    \begin{column}{0.48\textwidth}
+      \card{BlueSFT}{
+        \textbf{\color{BlueSFT}1. Diagnostic-Guided Curriculum Routing}\\
+        $\bullet$ \textbf{Support-Shift Route (SFT)}: When a wrong distractor is modal ($p_{\mathrm{top},j} > p_{\mathrm{key},j}$) or $I_j^{\mathrm{3PL}} = 0$ ($\le 25\%$), block binary RL and route to teacher traces to overthrow misconceptions.
+      }
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \card{GreenBase}{
+        \textbf{\color{GreenBase}2. 3PL- \& Plasticity-Calibrated RL Consolidation}\\
+        $\bullet$ \textbf{Consolidation Route (RL)}: When $p_{\mathrm{key},j} = p_{\mathrm{top},j}$ and $I_j^{\mathrm{3PL}} > 0$ ($[2..6/8]$), weight advantages by $\sqrt{I_j^{\mathrm{3PL}}}$ and plasticity $\boldsymbol{u}_j^\top \hat{\boldsymbol{w}}_t$ to repair inversions ($l_z \uparrow$) without mode collapse.
       }
     \end{column}
   \end{columns}
 
-  \vspace{3mm}
+  \vspace{1.8mm}
   \begin{center}
     \begin{tikzpicture}
-      \node[draw=NavyHeader, fill=NavyHeader, text=white, rounded corners=4pt, inner xsep=18pt, inner ysep=5pt, font=\normalsize\bfseries]
+      \node[draw=NavyHeader, fill=NavyHeader, text=white, rounded corners=4pt, inner xsep=18pt, inner ysep=4pt, font=\small\bfseries]
         {Thank You!};
     \end{tikzpicture}
   \end{center}
@@ -512,7 +533,7 @@
       \card{BlueSFT}{
         \textbf{\color{BlueSFT}Disjoint MMLU Test Bank ($N=1,472$)}\\[1.5mm]
         \renewcommand{\arraystretch}{1.22}
-        \setlength{\tabcolsep}{2.6pt}
+        \setlength{\tabcolsep}{2.4pt}
         \tiny
         \begin{tabular}{lccccc}
           \toprule
