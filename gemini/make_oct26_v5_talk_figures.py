@@ -497,27 +497,28 @@ def make_talk_fig04_coordinate_translation_stacked():
     pred_sft_curve  = (expit(res_s.x[0] * L_grid + res_s.x[1]) - expit(L_grid)) * 100.0
     classical_shift = (expit(L_grid + 0.5) - expit(L_grid)) * 100.0
 
-    ax2.plot(L_grid, classical_shift, "--", color="#059669", linewidth=1.8, zorder=4, label=r"Classical Shift ($\Delta\theta = +0.5$)")
-    ax2.plot(L_grid, pred_grpo_curve, "-", color="#DC2626", linewidth=2.6, zorder=6, label=rf"RL Steepening ($\tau = {res_g.x[0]:.2f} > 1$)")
-    ax2.plot(L_grid, pred_sft_curve, "-", color="#0284C7", linewidth=2.6, zorder=6, label=rf"SFT Flattening ($\tau = {res_s.x[0]:.2f} < 1$)")
+    ax2.plot(L_grid, classical_shift, "--", color="#059669", linewidth=1.8, zorder=4, label=r"Classical Shift ($\Delta\theta = +0.5, l_z = 0$)")
+    ax2.plot(L_grid, pred_grpo_curve, "-", color="#DC2626", linewidth=2.6, zorder=6, label=rf"RL Consolidation ($\tau = {res_g.x[0]:.2f}, l_z = +7.55$)")
+    ax2.plot(L_grid, pred_sft_curve, "-", color="#0284C7", linewidth=2.6, zorder=6, label=rf"SFT Teacher Imitation ($\tau = {res_s.x[0]:.2f}, l_z = -16.99$)")
 
     # Surgical Direct Labels
-    ax2.text(-2.8, 29.0, "Random Guessing Zone (<25%)", ha="center", fontsize=8.4, fontweight="bold", color="#991B1B", zorder=7)
-    ax2.text(-2.8, -17.0, "RL Hurts Hard Items\n(613 items drop)", ha="center", fontsize=8.2, fontweight="bold", color="#991B1B", zorder=7)
+    ax2.text(-2.8, 32.0, "Random Guessing Zone (<25%)", ha="center", fontsize=8.4, fontweight="bold", color="#991B1B", zorder=7)
+    ax2.text(-2.8, -17.0, "RL Hurts Hard Items (-613 items)", ha="center", fontsize=8.2, fontweight="bold", color="#991B1B", zorder=7)
     ax2.annotate(
-        "RL Boosts Known Items\n(+887 items rise)",
-        xy=(0.6, 22.0), xytext=(0.6, 29.5),
+        "RL Consolidates Easy Items\n(l_z = +7.55, 0% easy misses)",
+        xy=(0.45, 23.0), xytext=(-0.05, 34.0),
         arrowprops=dict(arrowstyle="-|>", color="#15803D", lw=1.1),
-        ha="center", fontsize=8.2, fontweight="bold", color="#15803D", zorder=7
+        ha="center", fontsize=8.1, fontweight="bold", color="#15803D", zorder=7
     )
-    ax2.text(-2.8, 12.0, "SFT Lifts Hard Items", ha="center", fontsize=8.2, fontweight="bold", color="#0369A1", zorder=7)
+    ax2.text(1.75, -24.5, "SFT Guttman Inversions\n(l_z = -16.99, 16.6% easy misses)", ha="center", fontsize=8.0, fontweight="bold", color="#0369A1", zorder=7)
+    ax2.text(-2.8, 12.5, "SFT Lifts Hard Items", ha="center", fontsize=8.2, fontweight="bold", color="#0369A1", zorder=7)
 
-    ax2.set_title("(B) Re-Ordered by Base Model's Own Initial Pass Rate: Opposite S-Curves Emerge", pad=18, fontsize=11.5)
+    ax2.set_title("(B) Re-Ordered by Base Pass Rate: Hyper-Consistency (l_z = +7.55) vs. Inversions (l_z = -16.99)", pad=18, fontsize=11.0)
     ax2.set_xlabel(r"Base Model Initial Log-Odds $\mu_{0j} = \mathrm{logit}(p_{\mathrm{base},j})$ (Easy $\rightarrow$ Hard)", fontsize=10.0)
     ax2.set_ylabel("Accuracy Change Δp (% pts) (↑)", fontsize=10.0)
     ax2.set_xlim(3.5, -4.5)
-    ax2.set_ylim(-30, 37)
-    ax2.legend(loc="upper left", bbox_to_anchor=(0.01, 0.98), borderpad=0.3, labelspacing=0.25, frameon=True, facecolor="white", edgecolor="#CBD5E1", framealpha=0.96, fontsize=7.8)
+    ax2.set_ylim(-32, 45)
+    ax2.legend(loc="upper left", bbox_to_anchor=(0.01, 0.99), ncol=1, borderpad=0.3, labelspacing=0.22, frameon=True, facecolor="white", edgecolor="#CBD5E1", framealpha=0.96, fontsize=7.4)
     ax2.grid(True, linestyle=":", alpha=0.45)
 
     ax2_top = ax2.twiny()
@@ -531,96 +532,128 @@ def make_talk_fig04_coordinate_translation_stacked():
 
 
 # ==============================================================================
-# FIGURE 5: Standalone 1x1 — Person Response Function (PRF) & 3PL Distractor Pivot
+# FIGURE 5: 1x2 — 3PL Information Trap & Nominal Distractor Split (p_top vs p_key)
 # ==============================================================================
 def make_talk_fig05_prf_slope_and_distractor_pivot():
-    fig, ax1 = plt.subplots(figsize=(9.2, 5.4))
+    fig, (ax1, ax2) = plt.subplots(
+        1, 2, figsize=(14.8, 5.3), gridspec_kw={"width_ratios": [1.0, 1.08], "wspace": 0.25}
+    )
 
+    # -------------------------------------------------------------------------
+    # Panel A: 2PL/GRPO Variance vs. Birnbaum's 3PL Information (Lucky-Guess Trap)
+    # -------------------------------------------------------------------------
+    p_grid = np.linspace(0.01, 0.99, 500)
+    c = 0.25
+    var_2pl = p_grid * (1.0 - p_grid)
+    var_2pl_norm = var_2pl / np.max(var_2pl)  # Peak = 1.0 at p = 0.50
+
+    info_3pl = np.where(p_grid > c, ((p_grid - c) ** 2) * (1.0 - p_grid) / (p_grid * ((1.0 - c) ** 2)), 0.0)
+    info_3pl_norm = info_3pl / np.max(info_3pl)  # Peak = 1.0 at p ≈ 0.68
+
+    # Empirical W1 active training prompt distribution across pass rates (k = 1..7 out of 8)
+    w1 = pd.read_csv(os.path.join(RESULTS, "W1", "pass_rate.csv"))
+    w1_active = w1[(w1["correct"] > 0) & (w1["correct"] < w1["k"])].copy()
+    counts = w1_active["correct"].value_counts().sort_index()
+    p_bins = counts.index.to_numpy() / 8.0
+    shares = counts.to_numpy() / len(w1_active)  # Fraction of active GRPO prompts
+    bar_colors = ["#DC2626" if p <= 0.25 else "#94A3B8" for p in p_bins]
+
+    ax1.axvspan(0.0, 26.5, color="#FEE2E2", alpha=0.45, zorder=1)
+    ax1.axvline(25.0, color="#DC2626", linestyle=":", linewidth=1.6, zorder=3)
+    ax1.bar(p_bins * 100.0, shares * 1.75, width=7.2, color=bar_colors, alpha=0.35, edgecolor="#475569", linewidth=0.8, zorder=2,
+            label="Active GRPO Training Prompts (Distribution)")
+    ax1.plot(p_grid * 100.0, var_2pl_norm, "--", color="#DC2626", linewidth=2.6, zorder=5,
+             label=r"2PL / GRPO Variance $p_j(1-p_j)$ (75% of peak at 25%)")
+    ax1.plot(p_grid * 100.0, info_3pl_norm, "-", color="#7C3AED", linewidth=3.0, zorder=6,
+             label=r"Birnbaum 3PL Info $I_j^{\mathrm{3PL}}$ ($=0$ at $\leq 25\%$)")
+
+    ax1.annotate(
+        "53.9% of Active Prompts\nin <=25% Lucky-Guess Zone\n(3PL Info = 0, GRPO +2σ)",
+        xy=(12.5, 0.52), xytext=(15.5, 0.99),
+        arrowprops=dict(arrowstyle="-|>", color="#991B1B", lw=1.3),
+        ha="center", fontsize=7.9, fontweight="bold", color="#991B1B", zorder=7
+    )
+    ax1.annotate(
+        "3PL True-Ability Info\nPeaks in [2..6/8] Band",
+        xy=(68.0, 0.99), xytext=(62.5, 0.48),
+        arrowprops=dict(arrowstyle="-|>", color="#5B21B6", lw=1.2),
+        ha="center", fontsize=8.1, fontweight="bold", color="#5B21B6", zorder=7
+    )
+
+    ax1.set_title("(A) 2PL/GRPO Variance vs. 3PL Information (Lucky-Guess Trap)", pad=11)
+    ax1.set_xlabel("Base Model Initial Pass Rate p_base,j (%)")
+    ax1.set_ylabel("Normalized Information / Signal Weight")
+    ax1.set_xlim(0, 100)
+    ax1.set_ylim(0, 1.24)
+    ax1.legend(loc="upper right", frameon=True, facecolor="white", edgecolor="#CBD5E1", framealpha=0.96, fontsize=7.6)
+    ax1.grid(True, linestyle=":", alpha=0.45)
+
+    # -------------------------------------------------------------------------
+    # Panel B: Nominal Distractor Split (p_top_base vs. p_key_base)
+    # -------------------------------------------------------------------------
     w0 = pd.read_csv(os.path.join(RESULTS, "W0", "items_bank.csv"))
     w0_ok = w0[w0["match_status"] == "matched"].copy()
     t9 = pd.read_csv(os.path.join(RESULTS, "T9r", "items_wide.csv")).set_index("item_id").loc[w0_ok["bank_row_id"]]
 
-    p0 = np.clip(t9["p_key_base"].values, 1e-4, 1 - 1e-4)
-    L0 = logit(p0)
-    dp_g = t9[["dp_key_rl_0_666", "dp_key_rl_1_666", "dp_key_rl_2_666"]].mean(axis=1).values
-    dp_s = t9[["dp_key_sft_0_70", "dp_key_sft_1_70", "dp_key_sft_2_70"]].mean(axis=1).values
-    p_g = np.clip(p0 + dp_g, 1e-4, 1 - 1e-4)
-    p_s = np.clip(p0 + dp_s, 1e-4, 1 - 1e-4)
+    p_key = t9["p_key_base"].values
+    p_top = t9["p_top_base"].values
+    dp_sft = t9[["dp_key_sft_0_70", "dp_key_sft_1_70", "dp_key_sft_2_70"]].mean(axis=1).values * 100.0
+    dp_rl  = t9[["dp_key_rl_0_666", "dp_key_rl_1_666", "dp_key_rl_2_666"]].mean(axis=1).values * 100.0
 
-    res_g = minimize(lambda c: np.mean((p_g - expit(c[0] * L0 + c[1])) ** 2), [1.8, 0.0])
-    res_s = minimize(lambda c: np.mean((p_s - expit(c[0] * L0 + c[1])) ** 2), [0.5, 0.0])
+    key_is_top = np.isclose(p_key, p_top, atol=1e-4)
+    wrong_is_top = p_top > p_key + 1e-4
 
-    w0_ok["L_base"] = L0
-    w0_ok["L_bin"] = pd.qcut(w0_ok["L_base"], q=10)
-    binned_L = w0_ok.groupby("L_bin", observed=False)[["a", "L_base"]].mean()
-    binned_L["p_g"] = np.clip(t9.groupby(w0_ok["L_bin"], observed=False)[["dp_key_rl_0_666", "dp_key_rl_1_666", "dp_key_rl_2_666"]].mean().mean(axis=1) + t9.groupby(w0_ok["L_bin"], observed=False)["p_key_base"].mean(), 0, 1) * 100.0
-    binned_L["p_s"] = np.clip(t9.groupby(w0_ok["L_bin"], observed=False)[["dp_key_sft_0_70", "dp_key_sft_1_70", "dp_key_sft_2_70"]].mean().mean(axis=1) + t9.groupby(w0_ok["L_bin"], observed=False)["p_key_base"].mean(), 0, 1) * 100.0
+    masks = [
+        key_is_top,
+        wrong_is_top & (p_top >= 0.25) & (p_top < 0.50),
+        wrong_is_top & (p_top >= 0.50) & (p_top < 0.75),
+        wrong_is_top & (p_top >= 0.75),
+    ]
+    labels = [
+        f"Correct Key\nIs Base Mode\n(n = {masks[0].sum()})",
+        f"Weak Wrong\nDistractor\np_top in [25,50%)\n(n = {masks[1].sum()})",
+        f"Moderate Wrong\nDistractor\np_top in [50,75%)\n(n = {masks[2].sum()})",
+        f"Strong Wrong\nMisconception\np_top >= 75%\n(n = {masks[3].sum()})",
+    ]
 
-    L_grid = np.linspace(3.5, -4.5, 400)
-    base_icc = expit(L_grid) * 100.0
-    classical_icc = expit(L_grid + 0.5) * 100.0
-    grpo_icc = expit(res_g.x[0] * L_grid + res_g.x[1]) * 100.0
-    sft_icc = expit(res_s.x[0] * L_grid + res_s.x[1]) * 100.0
+    rl_means  = [dp_rl[m].mean() for m in masks]
+    sft_means = [dp_sft[m].mean() for m in masks]
 
-    L_pivot = res_g.x[1] / (1.0 - res_g.x[0])
-    p_pivot = expit(L_pivot) * 100.0
+    x = np.arange(len(labels))
+    width = 0.34
 
-    # Shaded Wedges
-    mask_easy = L_grid >= L_pivot
-    mask_hard = L_grid <= L_pivot
-    ax1.fill_between(L_grid[mask_easy], base_icc[mask_easy], grpo_icc[mask_easy], color="#DCFCE7", alpha=0.55, zorder=1)
-    ax1.fill_between(L_grid[mask_hard], grpo_icc[mask_hard], base_icc[mask_hard], color="#FEE2E2", alpha=0.65, zorder=1)
-    ax1.axvspan(L_pivot, -4.5, color="#FEE2E2", alpha=0.18, zorder=0)
-    ax1.axvline(L_pivot, color="#DC2626", linestyle=":", linewidth=1.6, alpha=0.85, zorder=2)
+    ax2.axvspan(0.5, 3.5, color="#F8FAFC", alpha=0.9, zorder=0)
+    ax2.axvline(0.5, color="#64748B", linestyle="--", linewidth=1.3, zorder=2)
+    ax2.axhline(0.0, color="#334155", linewidth=1.2, zorder=2)
 
-    # Continuous Curves
-    ax1.plot(L_grid, base_icc, "-", color="#475569", linewidth=2.3, zorder=3,
-             label=r"Base Model ($\tau = 1.00$)")
-    ax1.plot(L_grid, classical_icc, "--", color="#059669", linewidth=2.1, zorder=4,
-             label=r"Classical IRT Shift ($\Delta\theta = +0.5, \tau = 1.0$)")
-    ax1.plot(L_grid, grpo_icc, "-", color="#DC2626", linewidth=3.0, zorder=5,
-             label=rf"RL Steepening ($\tau = {res_g.x[0]:.2f} > 1$) $\leftrightarrow$ Sharpening ($1/T$)")
-    ax1.scatter(binned_L["L_base"], binned_L["p_g"], s=48, color="#DC2626", marker="s", edgecolors="#7F1D1D", linewidth=1.1, zorder=6)
-    ax1.plot(L_grid, sft_icc, "-", color="#0284C7", linewidth=3.0, zorder=5,
-             label=rf"SFT Flattening ($\tau = {res_s.x[0]:.2f} < 1$) $\leftrightarrow$ Distribution Broadening")
-    ax1.scatter(binned_L["L_base"], binned_L["p_s"], s=48, color="#0284C7", marker="o", edgecolors="#0369A1", linewidth=1.1, zorder=6)
+    rects_rl  = ax2.bar(x - width / 2, rl_means, width, color="#DC2626", edgecolor="#7F1D1D", linewidth=1.0, zorder=4,
+                        label="GRPO (RL): Sharpens Existing Mode (Locks In Wrong Distractor)")
+    rects_sft = ax2.bar(x + width / 2, sft_means, width, color="#0284C7", edgecolor="#0369A1", linewidth=1.0, zorder=4,
+                        label="CoT-SFT: Flips 56.2% of Modes (Overthrows Wrong Distractor)")
 
-    # Pivot Marker
-    ax1.scatter([L_pivot], [p_pivot], s=105, color="#FDE047", marker="o", edgecolors="#0F172A", linewidth=2.0, zorder=8)
+    for r in rects_rl:
+        h = r.get_height()
+        va = "bottom" if h >= 0 else "top"
+        y_pos = h + 0.6 if h >= 0 else h - 0.6
+        ax2.text(r.get_x() + r.get_width() / 2, y_pos, f"{h:+.1f}%", ha="center", va=va, fontsize=8.6, fontweight="bold", color="#991B1B", zorder=6)
 
-    # 3PL Distractor Theory Wedge Annotations
-    ax1.annotate(
-        "Above 25% (+887 items):\nModal answer is correct → RL sharpens key",
-        xy=(1.05, 84.0), xytext=(-0.35, 93.0),
-        arrowprops=dict(arrowstyle="-|>", color="#166534", lw=1.3),
-        ha="center", fontsize=8.8, fontweight="bold", color="#166534", zorder=8
-    )
-    ax1.text(
-        -2.95, 43.0,
-        "Below 25% (-613 items):\nModal answer is wrong\n→ RL sharpens wrong option!",
-        ha="center", fontsize=8.8, fontweight="bold", color="#991B1B", zorder=8
-    )
-    ax1.annotate(
-        "Random-Guessing Threshold (~25%)",
-        xy=(L_pivot, p_pivot), xytext=(0.35, 25.5),
-        arrowprops=dict(arrowstyle="-|>", color="#0F172A", lw=1.3),
-        ha="center", va="center", fontsize=8.8, fontweight="bold", color="#0F172A", zorder=8
-    )
+    for r in rects_sft:
+        h = r.get_height()
+        va = "bottom" if h >= 0 else "top"
+        y_pos = h + 0.6 if h >= 0 else h - 0.6
+        ax2.text(r.get_x() + r.get_width() / 2, y_pos, f"{h:+.1f}%", ha="center", va=va, fontsize=8.6, fontweight="bold", color="#0369A1", zorder=6)
 
-    ax1.set_title("Item Response Curves: Slope Sharpening (GRPO) vs. Support Shift (CoT-SFT)", pad=16, fontsize=11.4, fontweight="bold")
-    ax1.set_xlabel(r"Base Model Initial Log-Odds $\mu_{0j} = \mathrm{logit}(p_{\mathrm{base},j})$ (Easy $\rightarrow$ Hard)", fontsize=10.5, fontweight="bold")
-    ax1.set_ylabel(r"Post-Training Pass Probability $p_j$ (%)", fontsize=10.5, fontweight="bold")
-    ax1.set_xlim(3.5, -4.5)
-    ax1.set_ylim(0, 105)
-    ax1.legend(loc="lower left", frameon=True, facecolor="white", edgecolor="#CBD5E1", framealpha=0.96, fontsize=8.4)
-    ax1.grid(True, linestyle=":", alpha=0.45)
+    ax2.text(2.0, 15.6, "Wrong Distractor Is Base Mode (51.4% of Bank, n = 756)\nSFT Overthrows Misconceptions (+11.7%); RL Locks Them In (-4.9%)",
+             ha="center", va="center", fontsize=8.5, fontweight="bold", color="#1E293B", zorder=6)
 
-    ax1_top = ax1.twiny()
-    p_ticks = np.array([0.90, 0.75, 0.50, 0.25, 0.10, 0.05])
-    ax1_top.set_xlim(ax1.get_xlim())
-    ax1_top.set_xticks(logit(p_ticks))
-    ax1_top.set_xticklabels(["90% (Easy)", "75%", "50%", "25% (Guessing)", "10%", "5% (Hard)"])
-    ax1_top.set_xlabel(r"Base Model Initial Pass Probability $p_{\mathrm{base},j}$", fontsize=9.8, fontweight="bold", labelpad=6)
+    ax2.set_xticks(x)
+    ax2.set_xticklabels(labels, fontsize=8.6, fontweight="bold")
+    ax2.set_title("(B) Nominal Distractor Split: Lock-In (RL) vs. Overthrow (SFT)", pad=11)
+    ax2.set_ylabel("Accuracy Change on Correct Key: Δp_key (% pts)")
+    ax2.set_xlim(-0.55, 3.55)
+    ax2.set_ylim(-20.5, 19.5)
+    ax2.legend(loc="lower right", frameon=True, facecolor="white", edgecolor="#CBD5E1", framealpha=0.96, fontsize=8.0)
+    ax2.grid(True, axis="y", linestyle=":", alpha=0.45)
 
     save_fig(fig, "talk_Fig05_prf_slope_and_distractor_pivot.png")
 
