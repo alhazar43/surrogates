@@ -649,7 +649,7 @@ def make_v4_fig06_actionable_control_payoff():
     base_x = m1_p.loc["t9_base", "mean_at_16"]
     base_y = m1_p.loc["t9_base", "pass_at_16"]
     ax1.scatter([base_x], [base_y], s=130, color="#475569", marker="o", edgecolors="#0F172A", linewidth=1.6, zorder=6, label="Base Model (38.2%, 93.0%)")
-    ax1.text(base_x - 0.3, base_y + 1.3, "Base (38.2%, 93.0%)", fontsize=8.6, fontweight="bold", color="#334155")
+    ax1.text(base_x - 0.2, base_y + 1.6, "Base (38.2%, 93.0%)", ha="left", fontsize=8.6, fontweight="bold", color="#334155")
 
     # 2. Standalone RL (u333)
     grpo_states = ["q1_grpo_0", "q1_grpo_1", "q1_grpo_2"]
@@ -673,13 +673,20 @@ def make_v4_fig06_actionable_control_payoff():
     )
     ax1.add_patch(arrow_grpo)
 
-    # 3. CoT-SFT Base
+    # 3. CoT-SFT Base (Stage 1 from Base)
     sft_states = ["t9_sft_0_70", "t9_sft_1_70", "t9_sft_2_70"]
     sft_xs = m1_p.loc[sft_states, "mean_at_16"].to_numpy()
     sft_ys = m1_p.loc[sft_states, "pass_at_16"].to_numpy()
     sft_cx, sft_cy = np.mean(sft_xs), np.mean(sft_ys)
     ax1.scatter([sft_cx], [sft_cy], s=130, color="#0284C7", marker="o", edgecolors="#0369A1", linewidth=1.6, zorder=6, label="CoT-SFT (T=0.7) (43.9%, 96.6%)")
-    ax1.text(sft_cx - 0.3, sft_cy + 1.3, "CoT-SFT (43.9%, 96.6%)", ha="right", fontsize=8.6, fontweight="bold", color="#0369A1")
+    ax1.text(sft_cx - 0.35, sft_cy + 1.5, "CoT-SFT (43.9%, 96.6%)", ha="right", fontsize=8.6, fontweight="bold", color="#0369A1")
+
+    arrow_base_sft = FancyArrowPatch(
+        (base_x, base_y), (sft_cx, sft_cy),
+        connectionstyle="arc3,rad=0.06", color="#0284C7",
+        arrowstyle="-|>", mutation_scale=17, linewidth=2.4, zorder=5
+    )
+    ax1.add_patch(arrow_base_sft)
 
     # 4. Zero-Training SFT T=0.2
     t02_states = ["m1a_sft_t02_0", "m1a_sft_t02_1", "m1a_sft_t02_2"]
@@ -798,81 +805,34 @@ def make_v4_fig06_actionable_control_payoff():
 
 
 # ==============================================================================
-# FIGURE 7: Standalone 1x1 — Minimalist Closed-Loop Dynamic IRT Schematic
+# FIGURE 7: Standalone 1x1 — Compiled LaTeX TikZ Closed-Loop Dynamic IRT Diagram
 # ==============================================================================
 def make_v4_fig07_dynamic_irt_schematic():
-    fig, ax = plt.subplots(figsize=(11.6, 7.2))
-    ax.axis("off")
-    ax.set_xlim(0, 100)
-    ax.set_ylim(0, 100)
+    import subprocess
+    import fitz
 
-    canvas = FancyBboxPatch((1.0, 1.0), 98.0, 98.0, boxstyle="round,pad=0.6,rounding_size=2.0", facecolor="#F8FAFC", edgecolor="#CBD5E1", linewidth=1.2, zorder=1)
-    ax.add_patch(canvas)
+    tex_path = os.path.join(OUT_DIR, "v4_Fig07_dynamic_irt_tikz.tex")
+    pdf_path = os.path.join(OUT_DIR, "v4_Fig07_dynamic_irt_tikz.pdf")
+    pdflatex_bin = r"C:\Users\steph\AppData\Local\Programs\MiKTeX\miktex\bin\x64\pdflatex.exe"
 
-    # Title with generous clearance above top banners
-    ax.text(50.0, 95.8, "From Static Population IRT to Dynamic Within-Model IRT", ha="center", va="center", fontsize=13.5, fontweight="bold", color="#0F172A", zorder=3)
+    if os.path.exists(tex_path) and os.path.exists(pdflatex_bin):
+        subprocess.run(
+            [pdflatex_bin, "-interaction=nonstopmode", "v4_Fig07_dynamic_irt_tikz.tex"],
+            cwd=OUT_DIR,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            check=True,
+        )
+        doc = fitz.open(pdf_path)
+        pix = doc[0].get_pixmap(dpi=300)
+        for fname in ["v4_Fig07_dynamic_irt_tikz.png", "v4_Fig07_dynamic_irt_schematic.png"]:
+            out_file = os.path.join(OUT_DIR, fname)
+            pix.save(out_file)
+            if os.path.exists(BRAIN_DIR):
+                shutil.copy2(out_file, os.path.join(BRAIN_DIR, fname))
+        doc.close()
+        print("[OK] Compiled LaTeX TikZ: v4_Fig07_dynamic_irt_tikz.png & v4_Fig07_dynamic_irt_schematic.png")
 
-    # Top Comparative Banners (y = 80.5 to 90.5)
-    card_static = FancyBboxPatch((4.0, 80.5), 44.0, 9.8, boxstyle="round,pad=0.4,rounding_size=1.2", facecolor="#FEF2F2", edgecolor="#F87171", linewidth=1.3, zorder=2)
-    ax.add_patch(card_static)
-    ax.text(26.0, 87.3, "Classical Population IRT (Static)", ha="center", fontsize=9.8, fontweight="bold", color="#991B1B", zorder=3)
-    ax.text(26.0, 83.0, "Fixed 102-LLM difficulty b  |  Single scalar ability θ", ha="center", fontsize=8.8, color="#7F1D1D", zorder=3)
-
-    card_dynamic = FancyBboxPatch((52.0, 80.5), 44.0, 9.8, boxstyle="round,pad=0.4,rounding_size=1.2", facecolor="#F0FDF4", edgecolor="#4ADE80", linewidth=1.3, zorder=2)
-    ax.add_patch(card_dynamic)
-    ax.text(74.0, 87.3, "Dynamic Within-Model IRT (Ours)", ha="center", fontsize=9.8, fontweight="bold", color="#166534", zorder=3)
-    ax.text(74.0, 83.0, "Anchored on Base Model  |  Tracks slope τ, shift δ & skills s", ha="center", fontsize=8.8, color="#14532D", zorder=3)
-
-    # Central State Hub
-    hub = FancyBboxPatch((35.5, 33.5), 29.0, 23.0, boxstyle="round,pad=0.5,rounding_size=2.0", facecolor="#0F172A", edgecolor="#38BDF8", linewidth=2.0, zorder=5)
-    ax.add_patch(hub)
-    ax.text(50.0, 51.0, "DYNAMIC IRT STATE", ha="center", va="center", fontsize=10.2, fontweight="bold", color="#38BDF8", zorder=6)
-    ax.text(50.0, 44.5, r"$x_t = (\tau_t, \, \delta_t, \, s_t)$", ha="center", va="center", fontsize=12.5, fontweight="bold", color="#F8FAFC", zorder=6)
-    ax.text(50.0, 38.0, "Slope τ  |  Shift δ  |  Skill Profile s", ha="center", va="center", fontsize=8.6, color="#CBD5E1", zorder=6)
-
-    # 4 Minimalist Outer Nodes (Big, Readable Slide Text — Max 2 Short Lines Each)
-    # 1. Top-Left
-    n1 = FancyBboxPatch((4.0, 48.0), 27.5, 25.5, boxstyle="round,pad=0.5,rounding_size=1.5", facecolor="#FFFFFF", edgecolor="#0284C7", linewidth=1.8, zorder=3)
-    ax.add_patch(n1)
-    ax.text(17.75, 68.5, "1. Base Model Coordinate", ha="center", va="center", fontsize=10.2, fontweight="bold", color="#0369A1", zorder=4)
-    ax.text(17.75, 60.5, r"$\mu_{0j} = \mathrm{logit}(p_{\mathrm{base},j})$", ha="center", va="center", fontsize=10.5, fontweight="bold", color="#0F172A", zorder=4)
-    ax.text(17.75, 53.0, "Replaces external difficulty;\nisolates <25% guessing zone", ha="center", va="center", fontsize=8.8, color="#334155", zorder=4)
-
-    # 2. Top-Right
-    n2 = FancyBboxPatch((68.5, 48.0), 27.5, 25.5, boxstyle="round,pad=0.5,rounding_size=1.5", facecolor="#FFFFFF", edgecolor="#4F46E5", linewidth=1.8, zorder=3)
-    ax.add_patch(n2)
-    ax.text(82.25, 68.5, "2. Practice Update (Write)", ha="center", va="center", fontsize=10.2, fontweight="bold", color="#4338CA", zorder=4)
-    ax.text(82.25, 60.5, "Gradient Rollout Update", ha="center", va="center", fontsize=9.8, fontweight="bold", color="#0F172A", zorder=4)
-    ax.text(82.25, 53.0, "Updates slope τ and skill profile s\nfrom batch rollout outcomes", ha="center", va="center", fontsize=8.8, color="#334155", zorder=4)
-
-    # 3. Bottom-Right
-    n3 = FancyBboxPatch((68.5, 6.5), 27.5, 25.5, boxstyle="round,pad=0.5,rounding_size=1.5", facecolor="#FFFFFF", edgecolor="#059669", linewidth=1.8, zorder=3)
-    ax.add_patch(n3)
-    ax.text(82.25, 27.0, "3. Benchmark Probe (Read)", ha="center", va="center", fontsize=10.2, fontweight="bold", color="#047857", zorder=4)
-    ax.text(82.25, 19.0, r"$p_{j,t} = \sigma(\tau_t \mu_{0j} + \delta_t + a_j^\top s_t)$", ha="center", va="center", fontsize=10.0, fontweight="bold", color="#0F172A", zorder=4)
-    ax.text(82.25, 11.5, "Predicts unseen item accuracy\nonline (73.5% accuracy)", ha="center", va="center", fontsize=8.8, color="#334155", zorder=4)
-
-    # 4. Bottom-Left
-    n4 = FancyBboxPatch((4.0, 6.5), 27.5, 25.5, boxstyle="round,pad=0.5,rounding_size=1.5", facecolor="#FFFFFF", edgecolor="#D97706", linewidth=1.8, zorder=3)
-    ax.add_patch(n4)
-    ax.text(17.75, 27.0, "4. Active Closed-Loop Control", ha="center", va="center", fontsize=10.2, fontweight="bold", color="#B45309", zorder=4)
-    ax.text(17.75, 19.0, r"Band [2..6/8] & Temp $T \propto 1/\tau$", ha="center", va="center", fontsize=9.8, fontweight="bold", color="#0F172A", zorder=4)
-    ax.text(17.75, 11.5, "Drops <25% zone; cuts dead\nrollouts 34% → 23%", ha="center", va="center", fontsize=8.8, color="#334155", zorder=4)
-
-    # Arrows
-    ax.add_patch(FancyArrowPatch((32.0, 63.0), (68.0, 63.0), color="#0284C7", arrowstyle="-|>", mutation_scale=16, linewidth=2.4, zorder=7))
-    ax.text(50.0, 65.2, "Initial Log-Odds & Skill Loadings", ha="center", va="bottom", fontsize=8.6, fontweight="bold", color="#0369A1", zorder=8)
-
-    ax.add_patch(FancyArrowPatch((82.25, 47.5), (82.25, 32.5), color="#4F46E5", arrowstyle="-|>", mutation_scale=16, linewidth=2.4, zorder=7))
-    ax.text(84.2, 40.0, "Online State\nFilter", ha="left", va="center", fontsize=8.4, fontweight="bold", color="#4338CA", zorder=8)
-
-    ax.add_patch(FancyArrowPatch((68.0, 17.0), (32.0, 17.0), color="#059669", arrowstyle="-|>", mutation_scale=16, linewidth=2.4, zorder=7))
-    ax.text(50.0, 19.2, "Updated Item Pass Probabilities", ha="center", va="bottom", fontsize=8.6, fontweight="bold", color="#047857", zorder=8)
-
-    ax.add_patch(FancyArrowPatch((17.75, 32.5), (17.75, 47.5), color="#D97706", arrowstyle="-|>", mutation_scale=16, linewidth=2.4, zorder=7))
-    ax.text(15.8, 40.0, "Next Item Batch\n& Temp T", ha="right", va="center", fontsize=8.4, fontweight="bold", color="#B45309", zorder=8)
-
-    save_fig(fig, "v4_Fig07_dynamic_irt_schematic.png")
 
 
 if __name__ == "__main__":
