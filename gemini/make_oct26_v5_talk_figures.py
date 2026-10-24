@@ -113,10 +113,10 @@ def make_talk_fig01_puzzle_and_modal_ceiling():
     ax.plot([1.4, 4.0], [54.6, 54.6], linestyle="--", color="#0284C7", linewidth=1.5, alpha=0.80, zorder=2)
 
     # Direct Modal Ceiling Labels in the completely open bottom-right space (x in [2.1, 3.9])
-    ax.text(2.15, 51.8, "CoT-SFT Modal Ceiling (Maj@16 = 54.6%, +7.0% new modes)",
-            fontsize=8.5, fontweight="bold", color="#0369A1", zorder=7)
-    ax.text(2.15, 44.5, "Base & RL Modal Ceiling (Maj@16 = 47.6% vs. 47.5%)",
-            fontsize=8.5, fontweight="bold", color="#991B1B", zorder=7)
+    ax.text(2.15, 51.8, "CoT-SFT Majority Vote (Maj@16 = 54.6%)",
+            fontsize=8.8, fontweight="bold", color="#0369A1", zorder=7)
+    ax.text(2.15, 44.5, "Base & GRPO Majority Vote (Maj@16 = 47.6% vs. 47.5%)",
+            fontsize=8.8, fontweight="bold", color="#991B1B", zorder=7)
 
     # Continuous Curves
     ax.plot(
@@ -169,9 +169,9 @@ def make_talk_fig01_puzzle_and_modal_ceiling():
     ax.set_xticklabels(["k = 1\n(Pass@1)", "k = 2", "k = 4\n(Pass@4)", "k = 8", "k = 16\n(Pass@16)"])
     ax.set_xlim(-0.22, 4.78)
     ax.set_ylim(28.0, 103.0)
-    ax.set_title("The Post-Training Puzzle: RL Hits Base Modal Ceiling, Collapses Pass@16", pad=12)
+    ax.set_title("Single-Draw Accuracy (Pass@1) vs. Multi-Draw Coverage (Pass@k)", pad=12)
     ax.set_xlabel("Number of Test-Time Rollout Attempts k (log₂ scale)")
-    ax.set_ylabel("MMLU Test Bank Accuracy: Pass@k (%) (↑)")
+    ax.set_ylabel("MMLU Test Accuracy: Pass@k (%)")
     ax.legend(loc="upper left", frameon=True, facecolor="white", edgecolor="#CBD5E1", framealpha=0.96, fontsize=8.8)
     ax.grid(True, linestyle=":", alpha=0.45)
 
@@ -227,9 +227,9 @@ def make_talk_fig02_eval_cat_and_2d_domains():
     ax1.set_xticklabels(["10", "25", "50", "100", "300", "750", "1472\n(Full Bank)"])
     ax1.set_xlim(9, 1750)
     ax1.set_ylim(0, 16.8)
-    ax1.set_title("(A) Adaptive Evaluation (CAT) Hits a 2.4% Bias Floor", pad=11)
-    ax1.set_xlabel("Number of Sampled MMLU Test Items n (log scale)")
-    ax1.set_ylabel("Score Estimation Error: RMSE (%) (↓)")
+    ax1.set_title("(A) Adaptive Testing (CAT) vs. Random Sampling", pad=11)
+    ax1.set_xlabel("Number of Sampled Test Items n (log scale)")
+    ax1.set_ylabel("Estimation Error: RMSE (%)")
     ax1.legend(loc="upper right", frameon=True, facecolor="white", edgecolor="#CBD5E1", framealpha=0.96, fontsize=8.8)
     ax1.grid(True, which="both", linestyle=":", alpha=0.45)
 
@@ -310,9 +310,9 @@ def make_talk_fig02_eval_cat_and_2d_domains():
         fontsize=8.6, fontweight="bold", color="#334155"
     )
 
-    ax2.set_title("(B) Why CAT & 1D θ Fail: 5× Discrimination Bias in 2D (a, b)", pad=10)
-    ax2.set_xlabel("Subject Mean IRT Difficulty b (Easy → Hard)")
-    ax2.set_ylabel("Accuracy Gain Over Base: ΔPass@1 (% pts) (↑)")
+    ax2.set_title("(B) Subject-Level Gains vs. 2PL Parameters (a, b)", pad=10)
+    ax2.set_xlabel("Subject Mean 2PL Difficulty b (Easy → Hard)")
+    ax2.set_ylabel("Accuracy Gain Over Base: ΔPass@1 (% pts)")
     ax2.set_xlim(-1.25, 2.65)
     ax2.set_ylim(-14, 44)
     ax2.legend(loc="lower left", frameon=True, facecolor="white", edgecolor="#CBD5E1", framealpha=0.95, fontsize=8.3)
@@ -351,10 +351,10 @@ def make_talk_fig03_rl_critics_and_eq_divergence():
             linewidth=2.4, markersize=5.8, label=lbl, zorder=4
         )
 
-    ax1.text(166, 48.45, "Identical ~47.5% Modal Ceiling Across All 4 Critics", ha="center", fontsize=8.8, fontweight="bold", color="#92400E", zorder=6)
-    ax1.set_title("(A) All 4 Static IRT Critics Tie at the ~47.5% Modal Ceiling", pad=11)
-    ax1.set_xlabel("RL Training Updates (Llama-3.2-1B on MMLU)")
-    ax1.set_ylabel("MMLU Test Bank Accuracy: Pass@1 (%) (↑)")
+    ax1.text(166, 48.45, "All 4 Critics Converge to ~47.5%", ha="center", fontsize=8.8, fontweight="bold", color="#92400E", zorder=6)
+    ax1.set_title("(A) Single-Draw Pass@1 Across RL Critics", pad=11)
+    ax1.set_xlabel("RL Training Updates")
+    ax1.set_ylabel("MMLU Test Accuracy: Pass@1 (%)")
     ax1.set_xticks([0, 83, 166, 250, 333])
     ax1.set_ylim(37.2, 50.0)
     ax1.legend(loc="lower right", bbox_to_anchor=(0.98, 0.06), frameon=True, facecolor="white", edgecolor="#CBD5E1", framealpha=0.96, fontsize=8.4)
@@ -390,14 +390,6 @@ def make_talk_fig03_rl_critics_and_eq_divergence():
             s_vals = q1_pool.loc[states, met].to_numpy()
             ax2.scatter([x_points[i]] * 3, s_vals, s=18, color=col, alpha=0.7, zorder=6)
 
-    # Clean Direct EQ Annotation in the Open Top-Left Area (no bbox overlapping curves)
-    ax2.text(
-        0.02, 86.0,
-        "Psychometric Equi-Accuracy (EQ) Test:\n5 of 6 tied critic pairs learn distinct item subsets\n(R_both = 0.20–0.37 > 0.14 null)",
-        fontsize=8.3, fontweight="bold", color="#0F172A",
-        zorder=7
-    )
-
     # Direct Endpoint Labels at k = 16
     ax2.text(4.06, 96.6, "96.6% (SFT)", va="center", ha="left", fontsize=8.4, fontweight="bold", color="#0284C7")
     ax2.text(4.06, 93.0, "93.0% (Base)", va="center", ha="left", fontsize=8.4, fontweight="bold", color="#475569")
@@ -409,9 +401,9 @@ def make_talk_fig03_rl_critics_and_eq_divergence():
     ax2.set_xticklabels(["k = 1", "k = 2", "k = 4", "k = 8", "k = 16"])
     ax2.set_xlim(-0.15, 4.95)
     ax2.set_ylim(32.0, 103.0)
-    ax2.set_title("(B) All 4 Critics Collapse Pass@16 — Yet Diverge on Item Subsets (EQ)", pad=11)
+    ax2.set_title("(B) Multi-Draw Pass@k at End of Training", pad=11)
     ax2.set_xlabel("Number of Test-Time Rollout Attempts k (log₂ scale)")
-    ax2.set_ylabel("MMLU Test Bank Pass@k (%) (↑)")
+    ax2.set_ylabel("MMLU Test Accuracy: Pass@k (%)")
     ax2.legend(loc="lower right", frameon=True, facecolor="white", edgecolor="#CBD5E1", framealpha=0.96, fontsize=8.0)
     ax2.grid(True, linestyle=":", alpha=0.45)
 
@@ -598,24 +590,24 @@ def make_talk_fig05_prf_slope_and_distractor_pivot():
 
     # 3PL Distractor Theory Wedge Annotations
     ax1.annotate(
-        "Above 25% (+887 items):\nBase mode is right → RL sharpens key",
+        "Above 25% (+887 items):\nModal answer is correct → RL sharpens key",
         xy=(1.05, 84.0), xytext=(-0.35, 93.0),
         arrowprops=dict(arrowstyle="-|>", color="#166534", lw=1.3),
         ha="center", fontsize=8.8, fontweight="bold", color="#166534", zorder=8
     )
     ax1.text(
         -2.95, 43.0,
-        "Below 25% (-613 items):\nBase mode is a wrong distractor\n→ RL sharpens wrong distractor!",
+        "Below 25% (-613 items):\nModal answer is wrong\n→ RL sharpens wrong option!",
         ha="center", fontsize=8.8, fontweight="bold", color="#991B1B", zorder=8
     )
     ax1.annotate(
-        "Random-Guessing Pivot (~25%)",
+        "Random-Guessing Threshold (~25%)",
         xy=(L_pivot, p_pivot), xytext=(0.35, 25.5),
         arrowprops=dict(arrowstyle="-|>", color="#0F172A", lw=1.3),
         ha="center", va="center", fontsize=8.8, fontweight="bold", color="#0F172A", zorder=8
     )
 
-    ax1.set_title("Person Response Function (PRF): Slope Rotation (τ ↔ 1/T) Around 25% Pivot", pad=16, fontsize=11.6, fontweight="bold")
+    ax1.set_title("Item Response Curves: Slope Sharpening (GRPO) vs. Support Shift (CoT-SFT)", pad=16, fontsize=11.4, fontweight="bold")
     ax1.set_xlabel(r"Base Model Initial Log-Odds $\mu_{0j} = \mathrm{logit}(p_{\mathrm{base},j})$ (Easy $\rightarrow$ Hard)", fontsize=10.5, fontweight="bold")
     ax1.set_ylabel(r"Post-Training Pass Probability $p_j$ (%)", fontsize=10.5, fontweight="bold")
     ax1.set_xlim(3.5, -4.5)
@@ -694,20 +686,20 @@ def make_talk_fig06_local_independence_and_order_dif():
 
     ax1.set_xlim(-42, 42)
     ax1.set_ylim(-42, 42)
-    ax1.set_title("(A) Violation of 1D Local Independence: Cross-Seed Residuals (r = 0.81)", pad=10)
-    ax1.set_xlabel("Seed 1 Item Residual Gain After 1D Curve (% pts)")
-    ax1.set_ylabel("Seed 2 Item Residual Gain After 1D Curve (% pts)")
+    ax1.set_title("(A) Cross-Seed Residual Correlation (r = 0.81)", pad=10)
+    ax1.set_xlabel("Seed 1 Item Residual Gain (% pts)")
+    ax1.set_ylabel("Seed 2 Item Residual Gain (% pts)")
     ax1.legend(loc="upper left", frameon=True, facecolor="white", edgecolor="#CBD5E1", framealpha=0.96, fontsize=8.4)
     ax1.grid(True, linestyle=":", alpha=0.45)
 
     # -------------------------------------------------------------------------
-    # Panel B: Clean Horizontal Dot-and-Range / Lollipop Chart for Order DIF
+    # Panel B: Clean Horizontal Dot-and-Range / Lollipop Chart for Order Sensitivity
     # -------------------------------------------------------------------------
     categories = [
-        "Supervised Fine-Tuning\n(CoT-SFT, 3 seeds)",
-        "Base Model Baseline\n(Llama-3.2-1B)",
-        "Standalone RL\n(GRPO, 3 seeds)",
-        "Online 2PL-RL Critics\n(24 arms / states)",
+        "CoT-SFT\n(3 seeds)",
+        "Base Model\n(Llama-3.2-1B)",
+        "GRPO (G = 5)\n(3 seeds)",
+        "GRPO + 2PL Critics\n(Online 2PL)",
     ]
     y_pos = np.arange(len(categories))
     vals = [1.88, 2.83, 10.67, 11.80]
@@ -717,7 +709,7 @@ def make_talk_fig06_local_independence_and_order_dif():
     # Reference lines
     ax2.axvline(1.035, color="#64748B", linestyle="--", linewidth=1.5, zorder=2)
     ax2.axvline(2.83, color="#94A3B8", linestyle=":", linewidth=1.4, zorder=2)
-    ax2.text(3.15, 3.62, "← Order-Invariant Null (D = 1.04)", ha="left", fontsize=8.4, fontweight="bold", color="#475569")
+    ax2.text(3.15, 3.62, "← Sampling Noise Floor (D = 1.04)", ha="left", fontsize=8.4, fontweight="bold", color="#475569")
 
     # Horizontal Stems
     for i in range(len(categories)):
@@ -733,17 +725,17 @@ def make_talk_fig06_local_independence_and_order_dif():
         ax2.scatter(vals[i], y_pos[i], s=120, color=colors[i], edgecolors=edge_colors[i], linewidth=1.6, zorder=6)
 
     # Direct Labels Beside Markers (Zero Overlap)
-    ax2.text(vals[0] + 0.65, y_pos[0], "D = 1.88 (-34% bias vs. Base)", va="center", ha="left", fontsize=8.8, fontweight="bold", color="#0284C7")
-    ax2.text(vals[1] + 0.65, y_pos[1], "D = 2.83 (Base Model Baseline)", va="center", ha="left", fontsize=8.8, fontweight="bold", color="#475569")
-    ax2.text(11.60 + 0.65, y_pos[2], "D = 10.67 (3.8× Base bias; RL 4× amplification)", va="center", ha="left", fontsize=8.8, fontweight="bold", color="#DC2626")
-    ax2.text(19.36 + 0.55, y_pos[3], "D = 11.80 (Range: 6.6–19.4)", va="center", ha="left", fontsize=8.8, fontweight="bold", color="#D97706")
+    ax2.text(vals[0] + 0.65, y_pos[0], "D = 1.88% (-34% vs. Base)", va="center", ha="left", fontsize=8.8, fontweight="bold", color="#0284C7")
+    ax2.text(vals[1] + 0.65, y_pos[1], "D = 2.83% (Base)", va="center", ha="left", fontsize=8.8, fontweight="bold", color="#475569")
+    ax2.text(11.60 + 0.65, y_pos[2], "D = 10.67% (3.8× Base)", va="center", ha="left", fontsize=8.8, fontweight="bold", color="#DC2626")
+    ax2.text(19.36 + 0.55, y_pos[3], "D = 11.80%", va="center", ha="left", fontsize=8.8, fontweight="bold", color="#D97706")
 
     ax2.set_yticks(y_pos)
     ax2.set_yticklabels(categories, fontsize=9.2, fontweight="bold")
-    ax2.set_xlabel("Paired Option-Order Dispersion D (Order 0 vs. 1) (↓)")
+    ax2.set_xlabel("Option-Order Sensitivity D (% pts)")
     ax2.set_xlim(0, 26.0)
     ax2.set_ylim(-0.6, 4.0)
-    ax2.set_title("(B) Format DIF: RL Amplifies Option-Order Position Bias 4×", pad=10)
+    ax2.set_title("(B) Sensitivity to Option Order (Swapping A/B/C/D)", pad=10)
     ax2.grid(True, axis="x", linestyle=":", alpha=0.45)
 
     save_fig(fig, "talk_Fig06_local_independence_and_order_dif.png")
@@ -846,9 +838,9 @@ def make_talk_fig07_predictions_and_fisher_band():
 
     ax1.set_xlim(36.8, 49.0)
     ax1.set_ylim(64.5, 102.5)
-    ax1.set_title("(A) Accuracy vs. Coverage: Escaping RL Mode Collapse", pad=11)
-    ax1.set_xlabel("Single-Draw Accuracy: Pass@1 (%) (↑)")
-    ax1.set_ylabel("Multi-Draw Coverage: Pass@16 (%) (↑)")
+    ax1.set_title("(A) Single-Draw Pass@1 vs. Multi-Draw Pass@16", pad=11)
+    ax1.set_xlabel("Single-Draw Accuracy: Pass@1 (%)")
+    ax1.set_ylabel("Multi-Draw Coverage: Pass@16 (%)")
     ax1.legend(loc="lower left", frameon=True, facecolor="white", edgecolor="#CBD5E1", framealpha=0.96, fontsize=7.8)
     ax1.grid(True, linestyle=":", alpha=0.45)
 
@@ -878,7 +870,7 @@ def make_talk_fig07_predictions_and_fisher_band():
     ax2_top.spines["bottom"].set_visible(False)
     ax2_top.tick_params(bottom=False, labelbottom=False)
     ax2_top.grid(True, linestyle=":", alpha=0.45)
-    ax2_top.set_title("(B) Tracking & Controlling IRT Slope τ Across RL Steps", pad=11)
+    ax2_top.set_title("(B) Response Curve Slope τ Across RL Updates", pad=11)
 
     # Clean Combined Legend in Top Tier (2 columns, perfectly open)
     handles = [
@@ -902,14 +894,13 @@ def make_talk_fig07_predictions_and_fisher_band():
     ax2_bot.scatter([83, 83, 83], [1.0712, 1.1047, 1.0650], color="#5B21B6", s=18, zorder=6)
     ax2_bot.scatter([333, 333, 333], [1.2126, 1.2177, 1.1470], color="#5B21B6", s=18, zorder=6)
 
-    ax2_bot.text(42, 1.69, "Zero-Training Temp T=0.2 (τ = 1.66)", fontsize=8.0, fontweight="bold", color="#047857")
+    ax2_bot.text(42, 1.69, "CoT-SFT @ T=0.2 (τ = 1.66, 0 RL steps)", fontsize=8.2, fontweight="bold", color="#047857")
 
-    # Clean Annotation Emphasizing Psychometric Detection (Zero Overlap)
     ax2_bot.annotate(
-        "1PL Fisher Band [2..6/8] Cuts Dead Rollouts 34% → 23%\n& IRT Slope τ Detects Significant Steepening (+0.04, p < 0.001)\nEven When Raw Pass@1 Looks Tied (46.5% vs. 46.7%)!",
-        xy=(333, 1.233), xytext=(175, 1.45),
+        "Informative Band [2..6/8]:\nΔτ = +0.04 (p < 0.001)",
+        xy=(333, 1.233), xytext=(215, 1.42),
         arrowprops=dict(arrowstyle="-|>", color="#B45309", lw=1.2),
-        ha="center", fontsize=7.5, fontweight="bold", color="#B45309"
+        ha="center", fontsize=8.2, fontweight="bold", color="#B45309"
     )
 
     ax2_bot.set_ylim(0.92, 1.78)
