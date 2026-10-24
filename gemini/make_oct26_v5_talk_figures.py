@@ -540,7 +540,7 @@ def make_talk_fig05_prf_slope_and_distractor_pivot():
     )
 
     # -------------------------------------------------------------------------
-    # Panel A: 2PL/GRPO Variance vs. Birnbaum's 3PL Information (Lucky-Guess Trap)
+    # Panel A: 2PL/GRPO Variance vs. Birnbaum's 3PL Information (Guessing Floor c = 25%)
     # -------------------------------------------------------------------------
     p_grid = np.linspace(0.01, 0.99, 500)
     c = 0.25
@@ -568,7 +568,7 @@ def make_talk_fig05_prf_slope_and_distractor_pivot():
              label=r"Birnbaum 3PL Info $I_j^{\mathrm{3PL}}$ ($=0$ at $\leq 25\%$)")
 
     ax1.annotate(
-        "53.9% of Active Prompts\nin <=25% Lucky-Guess Zone\n(3PL Info = 0, GRPO +2σ)",
+        "53.9% of Active Prompts\nin <=25% Guessing Region\n(3PL Info = 0, GRPO +2σ)",
         xy=(12.5, 0.52), xytext=(15.5, 0.99),
         arrowprops=dict(arrowstyle="-|>", color="#991B1B", lw=1.3),
         ha="center", fontsize=7.9, fontweight="bold", color="#991B1B", zorder=7
@@ -580,7 +580,7 @@ def make_talk_fig05_prf_slope_and_distractor_pivot():
         ha="center", fontsize=8.1, fontweight="bold", color="#5B21B6", zorder=7
     )
 
-    ax1.set_title("(A) 2PL/GRPO Variance vs. 3PL Information (Lucky-Guess Trap)", pad=11)
+    ax1.set_title("(A) 2PL Variance vs. 3PL Information (Guessing Floor c = 25%)", pad=11)
     ax1.set_xlabel("Base Model Initial Pass Rate p_base,j (%)")
     ax1.set_ylabel("Normalized Information / Signal Weight")
     ax1.set_xlim(0, 100)
