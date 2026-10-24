@@ -172,8 +172,9 @@
 \begin{frame}{Connecting Rollout Statistics to Psychometric Theory}
   \vspace{0.5mm}
   \renewcommand{\arraystretch}{1.42}
-  \setlength{\tabcolsep}{4.0pt}
+  \setlength{\tabcolsep}{4.5pt}
   \scriptsize
+  \noindent\resizebox{\linewidth}{!}{%
   \begin{tabular}{>{\bfseries\color{NavyHeader}}l >{\color{BlueSFT}\bfseries}l >{\color{PurpleIRT}\bfseries}l l}
     \toprule
     \textbf{Dimension} & \textbf{LLM Rollout Statistic} & \textbf{Psychometric Construct} & \textbf{Diagnostic Metric} \\
@@ -206,7 +207,8 @@
     Differential Item Functioning (DIF) &
     $D = |p_{\mathrm{ord0}} - p_{\mathrm{ord1}}|$ \\
     \bottomrule
-  \end{tabular}
+  \end{tabular}%
+  }
 
   \vspace{3mm}
   \noindent{\color{NavyHeader}\rule{\linewidth}{0.8pt}}\\[1.5mm]
@@ -434,72 +436,61 @@
 \end{frame}
 
 % ==============================================================================
-% SLIDE 13: WHY STATIC SNAPSHOTS CANNOT GUIDE DYNAMIC TRAINING
+% SLIDE 13: WHY CURRENT IRT REMAINS LIMITED TO POST-HOC DIAGNOSTICS
 % ==============================================================================
-\begin{frame}{Why Static Snapshots Cannot Guide Dynamic Training}
+\begin{frame}{Why Current IRT Remains Limited to Post-Hoc Diagnostics}
   \footnotesize
   \vspace{-1.5mm}
 
-  \noindent\textbf{\color{NavyHeader}1. Non-Ergodicity: Cross-Model Standing $\neq$ Within-Model Gradient Velocity}\\[1mm]
-  {\centering $\displaystyle a_j^{\mathrm{dyn}}(t) \;\triangleq\; \frac{d\,\mathrm{logit}\,P_j(\boldsymbol{\phi}_t)}{dt} \;=\; \underbrace{\nabla_{\boldsymbol{\phi}}\mathrm{logit}\,P_j(\boldsymbol{\phi}_t)^\top}_{\text{Item Jacobian }\boldsymbol{J}_j}\;\underbrace{\dot{\boldsymbol{\phi}}_t}_{\text{Update Velocity }\boldsymbol{u}_t} \;\perp\; a_j^{\mathrm{pop}} \quad (r = 0.072)$\par}\vspace{1mm}
-  Static rollout diagnostics ($\hat{p}_{j,0}, l_z, I_j^{\mathrm{3PL}}$) are single-checkpoint snapshots. Across training steps, logit evolution combines \textbf{global sharpening ($\tau_t$)}, \textbf{global drift ($\delta_t$)}, and \textbf{local support shift ($\Delta\kappa_{t,j}$)}.\par
+  \noindent\textbf{\color{NavyHeader}1. Single-Checkpoint Staleness ($t=0$ Snapshot vs.\ Moving Policy)}\\[0.6mm]
+  Rollout diagnostics ($\mu_{0j} = \mathrm{logit}\,p_{\mathrm{base},j}$, $p_{\mathrm{top},j}$) are calibrated on a frozen checkpoint ($t=0$). As policy weights evolve ($\boldsymbol{\phi}_0 \to \boldsymbol{\phi}_t$), item pass rates drift ($\mathbf{85\%}$ of prompts hit zero variance by step $83$ in \texttt{Float32}), so a static $t=0$ filter ($\texttt{[2..6/8]}$) accelerates at step $83$ ($+0.36\%$) but saturates at the same ceiling by step $333$ ($\mathbf{46.5\%}$ vs.\ $\mathbf{46.7\%}$).\par
 
-  \vspace{1.5mm}
-  \noindent{\color{BorderGray}\rule{\linewidth}{0.4pt}}\\[1.2mm]
-  \textbf{\color{NavyHeader}2. The Second-Order $\mathcal{O}(\Delta^2)$ Sink Principle}\\[1mm]
-  {\centering $\displaystyle \hat{\theta}_W - \theta_W^* \;\approx\; \mathcal{J}_{W\cdot o}^{-1}\textstyle\sum_{t=1}^T \mathbb{E}\bigl[p_t(1-p_t)\,\delta_t\,g_t\bigr]$\par}\vspace{1mm}
-  Step-to-step skill transitions enter binary outcomes at \textbf{second order $\mathcal{O}(\Delta^2)$}, acting as a statistical sink for any unmodeled $\mathcal{O}(1)$ variation (temperature $\tau_t$, baseline standing, guessing floor). Identifying transitions requires \textbf{closing $\mathcal{O}(1)$ nuisances first} and evaluating over \textbf{multi-step open-loop horizons ($H > 1$)}.\par
+  \vspace{1.2mm}
+  \noindent{\color{BorderGray}\rule{\linewidth}{0.4pt}}\\[1.0mm]
+  \textbf{\color{NavyHeader}2. Order-of-Magnitude Confounding ($\mathcal{O}(1)$ Nuisances Swamp $\mathcal{O}(\Delta^2)$ Learning)}\\[0.6mm]
+  {\centering $\displaystyle \hat{\theta}_W - \theta_W^* \;\approx\; \mathcal{J}_{W\cdot o}^{-1}\textstyle\sum_{t=1}^T \mathbb{E}\bigl[p_t(1-p_t)\,\delta_t\,g_t\bigr]$\par}\vspace{0.6mm}
+  In binary $\{0,1\}$ likelihoods, policy sharpening ($\tau_t \leftrightarrow 1/T$), baseline standing ($\mu_{0j}$), option-order bias ($D$), and $25\%$ guessing enter at \textbf{first order $\mathcal{O}(1)$}, whereas step-to-step skill transitions enter at \textbf{second order $\mathcal{O}(\Delta^2)$}—making naive transition estimates a statistical sink for unclosed $\mathcal{O}(1)$ shifts.\par
 
-  \vspace{1.5mm}
-  \noindent{\color{BorderGray}\rule{\linewidth}{0.4pt}}\\[1.2mm]
-  \textbf{\color{NavyHeader}3. Subspace Absorption \& Read--Write Asymmetry}\\[1mm]
-  {\centering $\displaystyle \mathcal{P}_{\perp}(\boldsymbol{W}) \;=\; (\boldsymbol{I} - \boldsymbol{A}\boldsymbol{A}^+)\boldsymbol{W}, \qquad \boldsymbol{a}_j^{\mathrm{read}} \;\neq\; \boldsymbol{\psi}_j^{\mathrm{write}}$\par}\vspace{1mm}
-  Unconstrained global trajectories absorb transitions inside $\mathrm{col}(\boldsymbol{A})$. Moreover, forcing a single item vector to serve as both \textbf{static read key ($\boldsymbol{a}_j^{\mathrm{read}}$)} and \textbf{dynamic write vector ($\boldsymbol{\psi}_j^{\mathrm{write}}$)} collapses multi-skill clusters into item memorization.\par
+  \vspace{1.2mm}
+  \noindent{\color{BorderGray}\rule{\linewidth}{0.4pt}}\\[1.0mm]
+  \textbf{\color{NavyHeader}3. Cross-Sectional Standing $\neq$ Within-Run Gradient Sensitivity}\\[0.6mm]
+  {\centering $\displaystyle \frac{d\,\mathrm{logit}\,P_j(\boldsymbol{\phi}_t)}{dt} \;=\; \underbrace{\nabla_{\boldsymbol{\phi}}\mathrm{logit}\,P_j(\boldsymbol{\phi}_t)^\top}_{\text{Item Jacobian }\boldsymbol{J}_j}\;\underbrace{\dot{\boldsymbol{\phi}}_t}_{\text{Update Velocity }\boldsymbol{u}_t} \;\perp\; a_j^{\mathrm{pop}} \quad (r = 0.072)$\par}\vspace{0.6mm}
+  Leaderboard $a_j^{\mathrm{pop}}$ measures static differences across $102$ models, whereas within-model updates follow the parameter Jacobian $\boldsymbol{J}_j \boldsymbol{u}_t$ ($\boldsymbol{\rho = 0.986}$) and share a low-rank change subspace across seeds ($\mathbf{75.8\%}$ variance share in RL vs.\ $\mathbf{15.4\%}$ in SFT).\par
 \end{frame}
 
 % ==============================================================================
-% SLIDE 14: A STATE-SPACE MODEL OF TRAINING DYNAMICS
+% SLIDE 14: DERIVING DESIGN PRINCIPLES FROM LLM GRADIENT DYNAMICS
 % ==============================================================================
-\begin{frame}{A State-Space Model of Training Dynamics}
+\begin{frame}{Deriving Design Principles from LLM Gradient Dynamics}
   \footnotesize
   \vspace{-1.5mm}
 
-  \noindent\textbf{\color{NavyHeader}1. Hierarchical Observation Model \& Doob Martingale Decomposition}\\[1mm]
-  {\centering $\displaystyle P_{j,t} = \sigma\!\Bigl(\tau_t\bigl(\boldsymbol{m}_j^\top \boldsymbol{v}_t + \boldsymbol{a}_j^\top \boldsymbol{z}_t + \boldsymbol{u}_j^\top \boldsymbol{c}_t - b_j\bigr)\Bigr), \qquad \Delta\boldsymbol{\kappa}_t = \underbrace{\boldsymbol{K}_t(y_t - \bar{p}_t)}_{\text{Epistemic Filter }\Delta\boldsymbol{z}_t\;(\mathbb{E}[\Delta\boldsymbol{z}_t]=\mathbf{0})} + \underbrace{\boldsymbol{g}_t(\bar{p}_t, \boldsymbol{\psi}_{e_t})}_{\text{Answer-Blind Drift }\Delta\boldsymbol{c}_t}$\par}\vspace{1mm}
-  Frozen read keys $\boldsymbol{a}_j$ are identified from static residual covariance ($r=0.81$). Two structural zeros separate \textbf{epistemic filtering} ($\Delta\boldsymbol{z}_t$, zero drift on frozen checkpoints) from \textbf{answer-blind plasticity} ($\Delta\boldsymbol{c}_t$, which never reads $y_t$).\par
+  \noindent\textbf{\color{NavyHeader}1. From First-Order Logit Expansion to Decoupled Read \& Write Vectors} \hfill {\scriptsize\color{MutedGray}\emph{(Motivated by $r=0.072$ \& $\rho=0.986$)}}\\[0.6mm]
+  {\centering $\displaystyle \Delta z_B(\boldsymbol{\phi}_t) \;\approx\; \underbrace{\nabla_{\boldsymbol{\phi}} z_B(\boldsymbol{\phi}_t)^\top}_{\text{Eval Sensitivity }\boldsymbol{J}_B}\Delta\boldsymbol{\phi}_t \quad\Longrightarrow\quad K_{BA} \;=\; \bigl(\boldsymbol{a}_B^{\mathrm{read}}\bigr)^\top \boldsymbol{\psi}_A^{\mathrm{write}} \;\longleftrightarrow\; \boldsymbol{J}_B\,\boldsymbol{J}_A^\top$\par}\vspace{0.5mm}
+  Projecting onto the low-rank change subspace ($\mathbf{75.8\%}$ RL share) unties what item $B$ \textbf{measures ($\boldsymbol{a}_B^{\mathrm{read}}$, frozen from residual covariance $r=0.81$)} from what item $A$ \textbf{teaches ($\boldsymbol{\psi}_A^{\mathrm{write}}$)} so drift cannot absorb local structure.\par
 
-  \vspace{1.5mm}
-  \noindent{\color{BorderGray}\rule{\linewidth}{0.4pt}}\\[1.2mm]
-  \textbf{\color{NavyHeader}2. 3PL Interior Plasticity Law \& Preconditioned State Transition}\\[1mm]
-  {\centering $\displaystyle \mathrm{Cov}_{\pi_\phi}\bigl(r,\,\nabla_\phi\log\pi_\phi\bigr) = p_j(1-p_j)\boldsymbol{\psi}_j \;\;\Longrightarrow\;\; \boldsymbol{c}_{t+1} = (\boldsymbol{I} - \boldsymbol{\Lambda})\,\boldsymbol{c}_t + \underbrace{c\,(\bar{p}_t - c_0)_+^{k_1}(1-\bar{p}_t)^{k_2}}_{\text{3PL Interior Gate }u(\bar{p}_t)}\,(1+\boldsymbol{s}_t)^{-\beta} \odot \boldsymbol{\psi}_{e_t}$\par}\vspace{1mm}
-  Unifies SGD ($k=1$), std-normalized RL ($k=\tfrac{1}{2}$), and the 3PL guessing floor $c_0=0.25$ ($[2..6/8]$ rollout band), while $(1+\boldsymbol{s}_t)^{-\beta}$ ($\boldsymbol{s}_{t+1} = \boldsymbol{s}_t + \boldsymbol{g}_t^2$) captures second-moment saturation and $\boldsymbol{\Lambda} \in (0,1)^M$ controls consolidation timescales.\par
+  \vspace{1.2mm}
+  \noindent{\color{BorderGray}\rule{\linewidth}{0.4pt}}\\[0.9mm]
+  \textbf{\color{NavyHeader}2. From Policy-Gradient Covariance to Interior Plasticity \& Mode Routing} \hfill {\scriptsize\color{MutedGray}\emph{(Motivated by $51.4\%$ Wrong Modes)}}\\[0.6mm]
+  {\centering $\displaystyle \mathbb{E}_{\pi_{\boldsymbol{\phi}}}\bigl[\Delta\boldsymbol{\phi}_{\mathrm{RL}} \mid x_A\bigr] \;=\; \eta\,\mathrm{Cov}_{\pi_{\boldsymbol{\phi}}}\bigl(r,\,\nabla_{\boldsymbol{\phi}}\log\pi_{\boldsymbol{\phi}}\bigr) \;=\; \eta\,\underbrace{c_G(p_{A,t})\,p_{A,t}(1-p_{A,t})}_{\text{Interior Plasticity }u(p_{A,t})}\,\nabla_{\boldsymbol{\phi}} z_A(\boldsymbol{\phi}_t)$\par}\vspace{0.5mm}
+  Expected RL updates follow $u(p) \propto p^{k_1}(1-p)^{k_2}$ ($k=1$ SGD; $k=\tfrac{1}{2}$ group-normalized) and vanish at $p \in \{0,1\}$; when a wrong distractor is modal ($p_{\mathrm{top},A,t} > p_{\mathrm{key},A,t}$), mode overthrow requires teacher $\nabla_{\boldsymbol{\phi}}\log\pi_{\boldsymbol{\phi}}(y_A^*\mid x_A)$.\par
 
-  \vspace{1.5mm}
-  \noindent{\color{BorderGray}\rule{\linewidth}{0.4pt}}\\[1.2mm]
-  \textbf{\color{NavyHeader}3. Asymmetric Teach--Measure Kernel \& Multi-Step Impulse Operator}\\[1mm]
-  {\centering $\displaystyle K_{BA} \;=\; \boldsymbol{a}_B^\top \boldsymbol{\psi}_A \;\longleftrightarrow\; \boldsymbol{J}_{\mathrm{eval}}\,\boldsymbol{J}_{\mathrm{train}}^\top, \qquad W_\ell[j,i] \;=\; \boldsymbol{H}\boldsymbol{F}^{\ell-1}\boldsymbol{G}$\par}\vspace{1mm}
-  Unties \textbf{Read Key $\boldsymbol{a}_B$} from \textbf{Write Vector $\boldsymbol{\psi}_A$}: diagonal $K_{AA}$ measures skill consolidation, off-diagonal $K_{BA}$ predicts cross-domain transfer vs.\ interference, and the Hankel spectrum of $W_\ell$ identifies the effective update rank.\par
+  \vspace{1.2mm}
+  \noindent{\color{BorderGray}\rule{\linewidth}{0.4pt}}\\[0.9mm]
+  \textbf{\color{NavyHeader}3. From Trajectory Unrolling to Doob Innovation Splitting} \hfill {\scriptsize\color{MutedGray}\emph{(Motivated by $\tau_t \leftrightarrow 1/T$ \& Rollout Noise)}}\\[0.6mm]
+  {\centering $\displaystyle \Delta\boldsymbol{\kappa}_t \;=\; \underbrace{\bigl(\boldsymbol{\kappa}_{t+1} - \mathbb{E}[\boldsymbol{\kappa}_{t+1}\mid\mathcal{F}_t]\bigr)}_{\text{Epistemic Filter }\Delta\boldsymbol{z}_t\;(\mathbb{E}[\Delta\boldsymbol{z}_t]=\mathbf{0})} \;+\; \underbrace{\bigl(\mathbb{E}[\boldsymbol{\kappa}_{t+1}\mid\mathcal{F}_t] - \boldsymbol{\kappa}_t\bigr)}_{\text{Predictable Gradient Drift }\Delta\boldsymbol{c}_t}$\par}\vspace{0.5mm}
+  After factoring out $\mathcal{O}(1)$ sharpening $\tau_t$, online tracking separates \textbf{epistemic belief filtering} ($\Delta\boldsymbol{z}_t \propto \boldsymbol{a}_A^{\mathrm{read}}(y_{A,t} - \bar{p}_{A,t})$, zero drift on frozen weights) from \textbf{answer-blind gradient drift} ($\Delta\boldsymbol{c}_t \propto u(\bar{p}_{A,t})\,\boldsymbol{\psi}_A^{\mathrm{write}}$).\par
 \end{frame}
 
 % ==============================================================================
-% SLIDE 15: STATE-SPACE CELL ARCHITECTURE
+% SLIDE 15: INTEGRATING PSYCHOMETRIC TRACKING INTO POST-TRAINING
 % ==============================================================================
-\begin{frame}{State-Space Cell Architecture}
-  \vspace{-1.5mm}
+\begin{frame}{Integrating Psychometric Tracking into Post-Training}
+  \vspace{-1.8mm}
   \begin{center}
-    \includegraphics[width=0.98\textwidth, height=0.84\textheight, keepaspectratio]{figures/talk_Fig09_detailed_state_space_diagram.png}
+    \includegraphics[width=0.98\textwidth, height=0.74\textheight, keepaspectratio]{figures/talk_Fig08_llm_native_integration.png}
   \end{center}
-\end{frame}
-
-% ==============================================================================
-% SLIDE 16: CLOSED-LOOP CURRICULUM AND DATA MIXING
-% ==============================================================================
-\begin{frame}{Closed-Loop Curriculum and Data Mixing}
-  \vspace{-1.5mm}
-  \begin{center}
-    \includegraphics[width=0.96\textwidth, height=0.75\textheight, keepaspectratio]{figures/talk_Fig08_next_step_architecture.png}
-  \end{center}
-  \vspace{-1.5mm}
+  \vspace{-1.8mm}
   \begin{center}
     \begin{tikzpicture}
       \node[draw=NavyHeader, fill=NavyHeader, text=white, rounded corners=4pt, inner xsep=20pt, inner ysep=3.5pt, font=\small\bfseries]
